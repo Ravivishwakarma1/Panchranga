@@ -1,0 +1,119 @@
+import fs from 'fs';
+import path from 'path';
+import { Suspense } from 'react';
+import { TopicHub, RawItem } from '@/lib/types';
+import HomePageClient, { Hub, FactCheckItem } from '@/components/HomePageClient';
+
+function getClusteredData(): { hubs: TopicHub[]; rawItems: RawItem[] } {
+  try {
+    const hubsPath = path.resolve(process.cwd(), 'data', 'topic-hubs.json');
+    const itemsPath = path.resolve(process.cwd(), 'data', 'ingested-items.json');
+
+    let hubs: TopicHub[] = [];
+    let rawItems: RawItem[] = [];
+
+    if (fs.existsSync(hubsPath)) {
+      hubs = JSON.parse(fs.readFileSync(hubsPath, 'utf-8'));
+    }
+    if (fs.existsSync(itemsPath)) {
+      rawItems = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
+    }
+
+    return { hubs, rawItems };
+  } catch (e) {
+    console.error('Error reading local topic hubs data:', e);
+  }
+  return { hubs: [], rawItems: [] };
+}
+
+export default function HomePage() {
+  const { hubs, rawItems } = getClusteredData();
+
+  // Map hubs into client format with computed counts and og_image
+  const processedHubs: Hub[] = hubs.map((hub) => {
+    const items = hub.items ?? [];
+    const firstOgItem = items.find((i) => i.og_image);
+    const mainstreamCount = items.filter((i) => i.lane === 'mainstream').length;
+    const grassrootsCount = items.filter((i) => i.lane === 'grassroots').length;
+    const discourseCount = items.filter((i) => i.lane === 'discourse').length;
+
+    return {
+      id: hub.id,
+      title: hub.title ?? 'Untitled Topic Hub',
+      ai_summary: hub.ai_summary ?? null,
+      last_updated_at: hub.last_updated_at ?? hub.first_seen_at ?? new Date().toISOString(),
+      og_image: firstOgItem?.og_image ?? null,
+      mainstream_count: mainstreamCount,
+      grassroots_count: grassrootsCount,
+      discourse_count: discourseCount,
+      first_source_name: firstOgItem?.source_name ?? items[0]?.source_name ?? 'Panchranga',
+    };
+  });
+
+  // Sort by last_updated_at descending
+  processedHubs.sort(
+    (a, b) =>
+      new Date(b.last_updated_at).getTime() -
+      new Date(a.last_updated_at).getTime()
+  );
+
+  const heroHub = processedHubs[0] ?? null;
+  const gridHubs = processedHubs.length > 1 ? processedHubs.slice(1) : processedHubs;
+
+  // Extract Fact Check Items
+  const factCheckNames = ['alt news', 'boom', 'newschecker', 'factly'];
+  let factCheckItems: FactCheckItem[] = rawItems
+    .filter((item) => {
+      const sName = (item.source_name || item.source?.name || '').toLowerCase();
+      const isFactCheckSource = factCheckNames.some((fc) => sName.includes(fc));
+      return isFactCheckSource;
+    })
+    .slice(0, 3)
+    .map((item) => ({
+      id: item.id,
+      source_name: item.source_name || 'Fact Check',
+      title: item.title,
+      url: item.url,
+      published_at: item.published_at,
+    }));
+
+  // Fallback sample fact check items if none in rawItems
+  if (factCheckItems.length < 3) {
+    const fallbackFC: FactCheckItem[] = [
+      {
+        id: 'fc-1',
+        source_name: 'Alt News',
+        title: 'Fact Check: Viral video claiming EVM tampering in recent elections is from 2019',
+        url: 'https://www.altnews.in',
+        published_at: new Date().toISOString(),
+      },
+      {
+        id: 'fc-2',
+        source_name: 'BOOM Live',
+        title: 'No, RBI has not issued notice declaring Rs 500 notes invalid',
+        url: 'https://www.boomlive.in',
+        published_at: new Date().toISOString(),
+      },
+      {
+        id: 'fc-3',
+        source_name: 'Newschecker',
+        title: 'Altered image of Supreme Court verdict circulated on social media',
+        url: 'https://newschecker.in',
+        published_at: new Date().toISOString(),
+      },
+    ];
+    factCheckItems = [...factCheckItems, ...fallbackFC].slice(0, 3);
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <div className="py-20 text-center text-xs text-[#6B6B6B]">
+          Loading story hubs...
+        </div>
+      }
+    >
+      <HomePageClient hubs={gridHubs} heroHub={heroHub} factCheckItems={factCheckItems} />
+    </Suspense>
+  );
+}

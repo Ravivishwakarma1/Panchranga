@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Noto+Serif+Devanagari:wght@400;600;700&display=swap');
+
+:root {
+  --background: #FAFAF8;
+  --foreground: #1A1A1A;
+  --muted: #6B6B6B;
+  --border: #E5E5E0;
+  --accent: #C0392B;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-serif-title {
+  font-family: 'Newsreader', 'Noto Serif Devanagari', serif;
+}
+
+.font-serif-masthead {
+  font-family: 'Instrument Serif', serif;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #FAFAF8;
+}
+::-webkit-scrollbar-thumb {
+  background: #E5E5E0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6B6B6B;
+}
+
+/* Hairline dividers */
+.hairline-b {
+  border-bottom: 1px solid var(--border);
+}
+.hairline-t {
+  border-top: 1px solid var(--border);
+}
+.hairline-r {
+  border-right: 1px solid var(--border);
+}
+.hairline-l {
+  border-left: 1px solid var(--border);
+}
