@@ -4,7 +4,32 @@ import { Suspense } from 'react';
 import { TopicHub, RawItem } from '@/lib/types';
 import HomePageClient, { Hub, FactCheckItem } from '@/components/HomePageClient';
 
-function getClusteredData(): { hubs: TopicHub[]; rawItems: RawItem[] } {
+import { supabase } from '@/lib/supabase/client';
+
+export const revalidate = 60;
+
+async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem[] }> {
+  // 1. Try querying Supabase Postgres if configured
+  if (supabase) {
+    try {
+      const [{ data: dbHubs }, { data: dbItems }] = await Promise.all([
+        supabase.from('topic_hubs').select('*').order('last_updated_at', { ascending: false }),
+        supabase.from('raw_items').select('*, source:sources(*)').order('published_at', { ascending: false }),
+      ]);
+
+      if (dbHubs && dbHubs.length > 0 && dbItems) {
+        const hubsWithItems: TopicHub[] = dbHubs.map((hub) => ({
+          ...hub,
+          items: dbItems.filter((i) => i.cluster_id === hub.id),
+        }));
+        return { hubs: hubsWithItems, rawItems: dbItems as any };
+      }
+    } catch (err) {
+      console.warn('Supabase query failed, falling back to local files:', err);
+    }
+  }
+
+  // 2. Fallback to local JSON files
   try {
     const hubsPath = path.resolve(process.cwd(), 'data', 'topic-hubs.json');
     const itemsPath = path.resolve(process.cwd(), 'data', 'ingested-items.json');
@@ -26,8 +51,8 @@ function getClusteredData(): { hubs: TopicHub[]; rawItems: RawItem[] } {
   return { hubs: [], rawItems: [] };
 }
 
-export default function HomePage() {
-  const { hubs, rawItems } = getClusteredData();
+export default async function HomePage() {
+  const { hubs, rawItems } = await getClusteredData();
 
   // Map hubs into client format with computed counts and og_image
   const processedHubs: Hub[] = hubs.map((hub) => {

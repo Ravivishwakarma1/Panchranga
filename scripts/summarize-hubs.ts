@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { generateNeutralSummary } from '../lib/summarizer';
+import { generateNeutralSummary, cleanHeadline } from '../lib/summarizer';
 import { TopicHub } from '../lib/types';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
@@ -22,7 +22,13 @@ async function runSummarization() {
   if (isConfigured) {
     const supabase = createClient(supabaseUrl!, supabaseKey!);
     const { data: dbHubs } = await supabase.from('topic_hubs').select('*');
-    if (dbHubs) hubs = dbHubs as any;
+    const { data: dbItems } = await supabase.from('raw_items').select('*, source:sources(*)');
+    if (dbHubs && dbItems) {
+      hubs = dbHubs.map((hub) => ({
+        ...hub,
+        items: dbItems.filter((i) => i.cluster_id === hub.id),
+      })) as any;
+    }
   } else if (fs.existsSync(hubsPath)) {
     hubs = JSON.parse(fs.readFileSync(hubsPath, 'utf-8'));
   }
@@ -37,36 +43,61 @@ async function runSummarization() {
   let summarizedCount = 0;
   let flaggedCount = 0;
 
-  for (const hub of hubs) {
+  // Filter multi-item hubs (events covered across multiple outlets)
+  const multiItemHubs = hubs.filter((h) => (h.items?.length || 0) > 1);
+  const singleItemHubs = hubs.filter((h) => (h.items?.length || 0) <= 1);
+
+  console.log(`🎯 Multi-source event hubs to summarize: ${multiItemHubs.length}`);
+
+  for (const hub of multiItemHubs) {
     const { summary, isFlagged } = await generateNeutralSummary(hub);
 
     if (isFlagged) {
       hub.ai_summary = undefined;
       flaggedCount++;
+      console.log(`  🛡️ [Flagged Sensitive] "${hub.title.slice(0, 50)}..."`);
     } else if (summary) {
       hub.ai_summary = summary;
       summarizedCount++;
+      console.log(`  ✨ [AI Summary] "${summary}"`);
+    }
+
+    // Small delay between calls to stay well within API rate limits
+    await new Promise((r) => setTimeout(r, 200));
+  }
+
+  // For single-item hubs, set neutral summary directly from headline if not already set
+  for (const hub of singleItemHubs) {
+    if (!hub.ai_summary) {
+      hub.ai_summary = cleanHeadline(hub.title);
     }
   }
 
   console.log(`\n🎉 AI Summarization complete!`);
-  console.log(`   ├─ Summarized Hubs: ${summarizedCount}`);
+  console.log(`   ├─ Clustered Multi-Item Summaries: ${summarizedCount}`);
   console.log(`   └─ Sources-Only (Flagged Sensitive): ${flaggedCount}`);
 
-  // Save to Database or Local Cache
+  // Save to Database and Local Cache
   if (isConfigured) {
     const supabase = createClient(supabaseUrl!, supabaseKey!);
-    for (const hub of hubs) {
-      await supabase
-        .from('topic_hubs')
-        .update({ ai_summary: hub.ai_summary })
-        .eq('id', hub.id);
+    console.log('💾 Updating Supabase Postgres topic hubs with AI summaries...');
+    for (const hub of multiItemHubs) {
+      if (hub.ai_summary) {
+        await supabase
+          .from('topic_hubs')
+          .update({ ai_summary: hub.ai_summary })
+          .eq('id', hub.id);
+      }
     }
-    console.log('💾 Supabase database updated with AI summaries.');
-  } else {
-    fs.writeFileSync(hubsPath, JSON.stringify(hubs, null, 2));
-    console.log(`💾 Saved AI summaries to local cache: ${hubsPath}`);
+    console.log('✅ Supabase database updated with AI summaries.');
   }
+
+  // Always update local cache for offline/instant page rendering
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  fs.writeFileSync(hubsPath, JSON.stringify(hubs, null, 2));
+  console.log(`💾 Saved updated topic hubs to local cache: ${hubsPath}`);
 }
 
 runSummarization().catch((err) => {

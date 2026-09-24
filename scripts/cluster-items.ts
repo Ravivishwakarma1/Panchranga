@@ -61,34 +61,42 @@ async function runClustering() {
     console.log(`        └─ ${h.item_count} items (${h.mainstream_count || 0} mainstream · ${h.grassroots_count || 0} grassroots · ${h.discourse_count || 0} discourse)`);
   });
 
-  // Save to Database or Local Cache
+  // Save to Database and Local Cache
   if (isConfigured) {
     const supabase = createClient(supabaseUrl!, supabaseKey!);
     console.log('💾 Syncing topic hubs and cluster IDs to Supabase Postgres...');
-    for (const hub of hubs) {
-      await supabase.from('topic_hubs').upsert({
+    
+    // Batch upsert hubs in chunks of 50
+    const chunkSize = 50;
+    for (let i = 0; i < hubs.length; i += chunkSize) {
+      const chunk = hubs.slice(i, i + chunkSize).map((hub) => ({
         id: hub.id,
         title: hub.title,
         ai_summary: hub.ai_summary,
         first_seen_at: hub.first_seen_at,
         last_updated_at: hub.last_updated_at,
         item_count: hub.item_count,
-      });
+      }));
+      const { error } = await supabase.from('topic_hubs').upsert(chunk);
+      if (error) console.error('⚠️ Error upserting topic hubs chunk:', error);
     }
+
+    // Update cluster_ids on raw_items
     for (const item of clusteredItems) {
       if (item.cluster_id) {
         await supabase.from('raw_items').update({ cluster_id: item.cluster_id }).eq('url', item.url);
       }
     }
     console.log('✅ Supabase database sync complete.');
-  } else {
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    fs.writeFileSync(hubsPath, JSON.stringify(hubs, null, 2));
-    fs.writeFileSync(itemsPath, JSON.stringify(clusteredItems, null, 2));
-    console.log(`💾 Saved ${hubs.length} topic hubs to local cache: ${hubsPath}`);
   }
+
+  // Always write local cache so app has immediate fresh data
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  fs.writeFileSync(hubsPath, JSON.stringify(hubs, null, 2));
+  fs.writeFileSync(itemsPath, JSON.stringify(clusteredItems, null, 2));
+  console.log(`💾 Saved ${hubs.length} topic hubs and ${clusteredItems.length} items to local cache.`);
 }
 
 runClustering().catch((err) => {

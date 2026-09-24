@@ -9,13 +9,37 @@ import SafeImage from '@/components/SafeImage';
 import { timeAgo } from '@/lib/utils';
 import MobileHubTabs from './MobileHubTabs';
 
+import { supabase } from '@/lib/supabase/client';
+
+export const revalidate = 60;
+
 interface PageProps {
   params: {
     id: string;
   };
 }
 
-function getHubData(id: string): TopicHub | null {
+async function getHubData(id: string): Promise<TopicHub | null> {
+  // 1. Try querying Supabase Postgres if configured
+  if (supabase) {
+    try {
+      const [{ data: dbHub }, { data: dbItems }] = await Promise.all([
+        supabase.from('topic_hubs').select('*').eq('id', id).maybeSingle(),
+        supabase.from('raw_items').select('*, source:sources(*)').eq('cluster_id', id),
+      ]);
+
+      if (dbHub) {
+        return {
+          ...dbHub,
+          items: dbItems || [],
+        };
+      }
+    } catch (err) {
+      console.warn('Supabase getHubData failed, falling back to local files:', err);
+    }
+  }
+
+  // 2. Fallback to local JSON files
   try {
     const hubsPath = path.resolve(process.cwd(), 'data', 'topic-hubs.json');
     if (fs.existsSync(hubsPath)) {
@@ -37,8 +61,8 @@ function getYouTubeEmbedUrl(url: string): string | null {
   return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 
-export default function HubDetailPage({ params }: PageProps) {
-  const hub = getHubData(params.id);
+export default async function HubDetailPage({ params }: PageProps) {
+  const hub = await getHubData(params.id);
 
   if (!hub) {
     redirect('/');

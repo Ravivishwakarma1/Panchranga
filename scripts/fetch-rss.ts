@@ -179,32 +179,31 @@ async function fetchRss() {
 
   if (isConfigured && supabase) {
     console.log('💾 Upserting raw items into Supabase...');
-    for (const item of allItems) {
-      await supabase.from('raw_items').upsert(
-        {
-          source_id: item.source_id,
-          title: item.title,
-          url: item.url,
-          published_at: item.published_at,
-          raw_summary: item.raw_summary,
-          og_image: item.og_image,
-          og_description: item.og_description,
-          fetched_at: item.fetched_at,
-        },
-        { onConflict: 'url' }
-      );
+    const chunkSize = 50;
+    for (let i = 0; i < allItems.length; i += chunkSize) {
+      const chunk = allItems.slice(i, i + chunkSize).map((item) => ({
+        source_id: item.source_id,
+        title: item.title,
+        url: item.url,
+        published_at: item.published_at,
+        raw_summary: item.raw_summary,
+        og_image: item.og_image,
+        og_description: item.og_description,
+        fetched_at: item.fetched_at,
+      }));
+      await supabase.from('raw_items').upsert(chunk, { onConflict: 'url' });
     }
     console.log('✅ Successfully stored items in Supabase.');
-  } else {
-    // Local JSON cache fallback
-    const dataDir = path.resolve(process.cwd(), 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    const outputPath = path.resolve(dataDir, 'ingested-items.json');
-    fs.writeFileSync(outputPath, JSON.stringify(allItems, null, 2));
-    console.log(`💾 Saved ${allItems.length} raw items to local cache fallback: ${outputPath}`);
   }
+
+  // Always write local cache fallback
+  const dataDir = path.resolve(process.cwd(), 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  const outputPath = path.resolve(dataDir, 'ingested-items.json');
+  fs.writeFileSync(outputPath, JSON.stringify(allItems, null, 2));
+  console.log(`💾 Saved ${allItems.length} raw items to local cache: ${outputPath}`);
 
   console.log('✨ Ingestion cycle completed successfully.');
 }

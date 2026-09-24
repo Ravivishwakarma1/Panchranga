@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { cosineSimilarity } from './embeddings';
 import { RawItem, TopicHub } from './types';
 
@@ -54,7 +55,7 @@ export function clusterRawItems(
       }
     } else {
       // Create new topic hub for this event
-      const newHubId = `hub-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const newHubId = crypto.randomUUID();
       item.cluster_id = newHubId;
 
       const newHub: TopicHub = {
