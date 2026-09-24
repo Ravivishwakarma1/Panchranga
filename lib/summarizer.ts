@@ -68,10 +68,10 @@ export async function generateNeutralSummary(hub: TopicHub): Promise<SummaryResu
 
   const headlines = items.map((i) => `- ${cleanHeadline(i.title)}`);
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  if (apiKey) {
-    try {
-      const prompt = `You are a neutral Indian news editor.
+  const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+  const prompt = `You are a neutral Indian news editor.
 Read these headlines about the same event and write ONE clear sentence (max 18 words) describing what happened.
 
 Rules:
@@ -87,8 +87,53 @@ ${headlines.join('\n')}
 
 One sentence only:`;
 
+  // 1. Try Groq (Ultra-fast inference)
+  if (groqKey) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'qwen/qwen3.8-27b',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a neutral news editor. Write ONE clear sentence (max 18 words) describing what happened. Plain English only. No source names, no quotes.',
+            },
+            {
+              role: 'user',
+              content: `Headlines:\n${headlines.join('\n')}\n\nOne sentence only:`,
+            },
+          ],
+          max_tokens: 50,
+          temperature: 0.2,
+        }),
+      });
+
+      if (response.ok) {
+        const json = await response.json();
+        const text = json.choices?.[0]?.message?.content?.trim();
+        if (text) {
+          const cleanText = text
+            .replace(/^["'“‘]+|["'”’]+$/g, '')
+            .replace(/^Mainstream media coverage highlights\s*/i, '')
+            .replace(/\s*as reported by.*$/i, '');
+          return { summary: cleanText, isFlagged: false };
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Groq API summary call failed, falling back...', e);
+    }
+  }
+
+  // 2. Try Gemini
+  if (geminiKey) {
+    try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
