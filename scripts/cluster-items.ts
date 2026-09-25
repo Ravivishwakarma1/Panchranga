@@ -1,3 +1,8 @@
+import WebSocket from 'ws';
+if (typeof (globalThis as any).WebSocket === 'undefined') {
+  (globalThis as any).WebSocket = WebSocket;
+}
+
 import fs from 'fs';
 import path from 'path';
 import { generateEmbedding } from '../lib/embeddings';
