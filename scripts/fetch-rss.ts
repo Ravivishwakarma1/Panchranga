@@ -190,10 +190,10 @@ async function fetchSingleSource(source: any): Promise<IngestedItem[]> {
     };
   }).filter((item: any) => item.url.startsWith('http'));
 
-  // Enhance only the top 5 items missing thumbnails to optimize speed
+  // Enhance only the top 2 items missing thumbnails to optimize speed
   const itemsWithOg: IngestedItem[] = await Promise.all(
     itemsRaw.map(async (item: any, idx: number) => {
-      if (!item.og_image && idx < 5) {
+      if (!item.og_image && idx < 2) {
         const { ogImage, ogDesc } = await fetchOgData(item.url);
         return {
           ...item,

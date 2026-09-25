@@ -28,7 +28,13 @@ async function runClustering() {
 
   if (isConfigured) {
     const supabase = createClient(supabaseUrl!, supabaseKey!);
-    const { data: dbItems } = await supabase.from('raw_items').select('*, source:sources(*)');
+    // Cluster recent items from the last 48 hours to maintain fast, fresh topic hubs
+    const cutoffDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const { data: dbItems } = await supabase
+      .from('raw_items')
+      .select('*, source:sources(*)')
+      .gte('published_at', cutoffDate)
+      .order('published_at', { ascending: false });
     if (dbItems) rawItems = dbItems as any;
   } else {
     // Local JSON cache fallback
