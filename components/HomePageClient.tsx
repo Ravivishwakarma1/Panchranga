@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import SafeImage from './SafeImage';
 import CoverageBar from '@/components/CoverageBar';
+import NewsletterSignup from '@/components/NewsletterSignup';
 import { timeAgo } from '@/lib/utils';
 
 export interface Hub {
@@ -39,18 +41,99 @@ export default function HomePageClient({
   hubs,
   heroHub,
   factCheckItems,
+  initialSearchQuery = '',
+  initialTopic = '',
 }: {
   hubs: Hub[];
   heroHub: Hub | null;
   factCheckItems: FactCheckItem[];
+  initialSearchQuery?: string;
+  initialTopic?: string;
 }) {
+  const searchParams = useSearchParams();
   const [centerVisibleCount, setCenterVisibleCount] = useState(12);
   const [visibleTopicsCount, setVisibleTopicsCount] = useState(3);
 
-  const allHubs = heroHub ? [heroHub, ...hubs] : hubs;
+  const qParam = searchParams?.get('q') ?? initialSearchQuery;
+  const topicParam = searchParams?.get('topic') ?? initialTopic;
+  const activeQuery = qParam.trim();
+  const isFiltered = Boolean(activeQuery || (topicParam && topicParam !== 'All'));
+
+  const baseHubs = useMemo(() => {
+    return heroHub ? [heroHub, ...hubs] : hubs;
+  }, [heroHub, hubs]);
+
+  const filteredHubs = useMemo(() => {
+    let result = baseHubs;
+
+    if (activeQuery) {
+      const q = activeQuery.toLowerCase();
+      const isFactCheck = q === 'fact check' || q === 'fact-check' || q === 'factcheck';
+      const factCheckSources = ['alt news', 'boom', 'newschecker', 'factly'];
+
+      result = result.filter((hub) => {
+        // Fact check query matches hubs with fact checking items or keywords
+        if (isFactCheck) {
+          const sName = (hub.first_source_name || hub.sources?.name || '').toLowerCase();
+          const matchesFcSource = factCheckSources.some((fc) => sName.includes(fc));
+          const matchesFcTitle =
+            hub.title.toLowerCase().includes('fact check') ||
+            hub.title.toLowerCase().includes('fact-check') ||
+            hub.title.toLowerCase().includes('falsely') ||
+            hub.title.toLowerCase().includes('viral video');
+          if (matchesFcSource || matchesFcTitle) return true;
+        }
+
+        // Title and summary match
+        if (hub.title.toLowerCase().includes(q)) return true;
+        if (hub.ai_summary && hub.ai_summary.toLowerCase().includes(q)) return true;
+
+        // Source name match
+        const sourceName = (hub.first_source_name || hub.sources?.name || '').toLowerCase();
+        if (sourceName.includes(q)) return true;
+
+        // Topic / Category match
+        const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
+        const topic = (hub.topic || detected.topic || '').toLowerCase();
+        if (topic.includes(q) || q.includes(topic)) return true;
+
+        // Topic keywords matching
+        for (const [topicKey, keywords] of Object.entries(TOPIC_KEYWORDS)) {
+          if (topicKey.toLowerCase().includes(q) || q.includes(topicKey.toLowerCase())) {
+            if (keywords.some((kw) => hub.title.toLowerCase().includes(kw.toLowerCase()))) {
+              return true;
+            }
+          }
+        }
+
+        // Region match
+        const region = (hub.region || detected.region || '').toLowerCase();
+        if (region.includes(q) || q.includes(region)) return true;
+
+        return false;
+      });
+    }
+
+    if (topicParam && topicParam !== 'All') {
+      const t = topicParam.toLowerCase();
+      result = result.filter((hub) => {
+        const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
+        const topic = (hub.topic || detected.topic || '').toLowerCase();
+        return topic.includes(t) || hub.title.toLowerCase().includes(t);
+      });
+    }
+
+    return result;
+  }, [baseHubs, activeQuery, topicParam]);
+
+  const displayHeroHub = isFiltered ? (filteredHubs[0] ?? null) : heroHub;
+  const displayListHubs = isFiltered
+    ? (filteredHubs.length > 1 ? filteredHubs.slice(1, centerVisibleCount + 1) : filteredHubs)
+    : hubs.slice(0, centerVisibleCount);
 
   // Sorted hubs for sidebars
-  const todaysBriefingHubs = [...allHubs]
+  const sidebarPool = isFiltered && filteredHubs.length > 0 ? filteredHubs : baseHubs;
+  const todaysBriefingHubs = [...sidebarPool]
     .sort((a, b) => {
       const aTotal = a.mainstream_count + a.grassroots_count + a.discourse_count;
       const bTotal = b.mainstream_count + b.grassroots_count + b.discourse_count;
@@ -58,7 +141,7 @@ export default function HomePageClient({
     })
     .slice(0, 4);
 
-  const mostCoveredHubs = [...allHubs]
+  const mostCoveredHubs = [...sidebarPool]
     .sort((a, b) => {
       const aTotal = a.mainstream_count + a.grassroots_count + a.discourse_count;
       const bTotal = b.mainstream_count + b.grassroots_count + b.discourse_count;
@@ -66,36 +149,79 @@ export default function HomePageClient({
     })
     .slice(0, 5);
 
-  const centerListHubs = hubs.slice(0, centerVisibleCount);
-
   return (
     <div className="w-full pb-16 font-sans">
       {/* SECTION 4 — Main 3-Column Layout Grid */}
       <div className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-[28px]">
+        {/* Active Filter Banner */}
+        {isFiltered && (
+          <div className="bg-white border border-[#E5E5E0] rounded-lg p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2 py-0.5 bg-[#C0392B] text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold">
+                Filter Active
+              </span>
+              <span className="text-[15px] font-bold text-[#1A1A1A]">
+                &ldquo;{activeQuery || topicParam}&rdquo;
+              </span>
+              <span className="text-xs text-[#9CA3AF]">
+                — {filteredHubs.length} {filteredHubs.length === 1 ? 'story hub' : 'story hubs'}
+              </span>
+            </div>
+            <Link
+              href="/"
+              className="text-xs text-[#6B6B6B] hover:text-[#C0392B] font-semibold transition-colors border border-[#E5E5E0] rounded px-3 py-1.5 hover:border-[#C0392B] flex items-center gap-1 shrink-0"
+            >
+              <span>Clear filter</span>
+              <span>✕</span>
+            </Link>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_300px] gap-[28px]">
-          
           {/* CENTER CONTENT — Hero + Story List (Order 1 on mobile, 2 on desktop) */}
           <main className="order-1 lg:order-2 space-y-6 min-w-0">
-            {/* Hero Story (Height: 380px) */}
-            {heroHub && <HeroCard hub={heroHub} />}
-
-            {/* List Layout (NOT Card Grid) */}
-            <div className="divide-y divide-[#E5E5E0]">
-              {centerListHubs.map((hub) => (
-                <StoryListItem key={`center-list-${hub.id}`} hub={hub} />
-              ))}
-            </div>
-
-            {/* More Stories Button */}
-            {centerVisibleCount < hubs.length && (
-              <div className="pt-4">
-                <button
-                  onClick={() => setCenterVisibleCount((prev) => prev + 12)}
-                  className="w-full py-2.5 border border-[#E5E5E0] rounded text-[13px] font-semibold text-[#1A1A1A] hover:bg-gray-50 transition-colors"
-                >
-                  More stories →
-                </button>
+            {isFiltered && filteredHubs.length === 0 ? (
+              <div className="py-16 text-center space-y-4 bg-white rounded-lg border border-[#E5E5E0] p-8">
+                <div className="text-3xl">🔍</div>
+                <h3 className="font-serif-title text-2xl text-[#1A1A1A] font-bold">
+                  No stories match &ldquo;{activeQuery || topicParam}&rdquo;
+                </h3>
+                <p className="text-xs text-[#6B6B6B] max-w-md mx-auto leading-relaxed">
+                  No clustered story hubs matched your filter. Try searching for broader terms like &ldquo;Politics&rdquo;, &ldquo;Courts&rdquo;, or &ldquo;National&rdquo;.
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center px-5 py-2.5 bg-[#1A1A1A] text-white rounded text-xs font-semibold hover:bg-black transition-colors"
+                  >
+                    View all topic hubs →
+                  </Link>
+                </div>
               </div>
+            ) : (
+              <>
+                {/* Hero Story (Height: 380px) */}
+                {displayHeroHub && <HeroCard hub={displayHeroHub} />}
+
+                {/* List Layout (NOT Card Grid) */}
+                <div className="divide-y divide-[#E5E5E0]">
+                  {displayListHubs.map((hub) => (
+                    <StoryListItem key={`center-list-${hub.id}`} hub={hub} />
+                  ))}
+                </div>
+
+                {/* More Stories Button */}
+                {centerVisibleCount < (isFiltered ? filteredHubs.length : hubs.length) && (
+                  <div className="pt-4">
+                    <button
+                      onClick={() => setCenterVisibleCount((prev) => prev + 12)}
+                      className="w-full py-2.5 border border-[#E5E5E0] rounded text-[13px] font-semibold text-[#1A1A1A] hover:bg-gray-50 transition-colors"
+                    >
+                      More stories →
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </main>
 
@@ -106,7 +232,7 @@ export default function HomePageClient({
             </h2>
             <div className="divide-y divide-[#E5E5E0]">
               {todaysBriefingHubs.map((hub) => {
-                const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
+                const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
                 const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
                 const region = hub.region || detected.region;
                 const imageUrl = hub.og_image
@@ -172,7 +298,7 @@ export default function HomePageClient({
 
               <div className="divide-y divide-[#E5E5E0]">
                 {mostCoveredHubs.map((hub) => {
-                  const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
+                  const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
                   const imageUrl = hub.og_image
                     ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
                     : null;
@@ -193,7 +319,7 @@ export default function HomePageClient({
                         <div className="flex-1 min-w-0 space-y-1">
                           {/* Badge */}
                           <div className="text-[11px] text-[#9CA3AF] font-sans font-medium">
-                            {totalSources} sources
+                            {totalSources} {totalSources === 1 ? 'source' : 'sources'}
                           </div>
 
                           {/* Headline */}
@@ -244,27 +370,72 @@ export default function HomePageClient({
                 ))}
               </div>
             </div>
+
+            {/* Newsletter Signup */}
+            <div style={{ marginTop: '32px' }}>
+              <NewsletterSignup />
+            </div>
           </aside>
         </div>
       </div>
 
       {/* SECTION 5 — Topic Sections (below 3-column area) */}
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 mt-16 space-y-16">
-        {TOPIC_SECTIONS.slice(0, visibleTopicsCount).map((topicName) => (
-          <TopicSection key={topicName} topicName={topicName} hubs={allHubs} />
-        ))}
+      {!isFiltered && (
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-6 mt-16 space-y-16">
+          {TOPIC_SECTIONS.slice(0, visibleTopicsCount).map((topicName) => (
+            <TopicSection key={topicName} topicName={topicName} hubs={baseHubs} />
+          ))}
 
-        {visibleTopicsCount < TOPIC_SECTIONS.length && (
-          <div className="text-center pt-6">
-            <button
-              onClick={() => setVisibleTopicsCount((prev) => Math.min(prev + 3, TOPIC_SECTIONS.length))}
-              className="px-8 py-3 bg-[#1A1A1A] text-white rounded font-sans text-sm font-semibold hover:bg-black transition-colors"
-            >
-              Load more topics ↓
-            </button>
+          {visibleTopicsCount < TOPIC_SECTIONS.length && (
+            <div className="text-center pt-6">
+              <button
+                onClick={() => setVisibleTopicsCount((prev) => Math.min(prev + 3, TOPIC_SECTIONS.length))}
+                className="px-8 py-3 bg-[#1A1A1A] text-white rounded font-sans text-sm font-semibold hover:bg-black transition-colors"
+              >
+                Load more topics ↓
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Full-width Newsletter Banner */}
+      <section style={{
+        background: '#1A1A1A',
+        padding: '60px 32px',
+        marginTop: '40px'
+      }}>
+        <div style={{
+          maxWidth: '1320px',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '32px'
+        }}>
+          <div>
+            <h2 style={{
+              fontFamily: 'Georgia, serif',
+              fontSize: '32px',
+              color: 'white',
+              margin: '0 0 8px 0',
+              fontWeight: 700
+            }}>
+              Every color, every morning.
+            </h2>
+            <p style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '15px',
+              color: '#9CA3AF',
+              margin: 0
+            }}>
+              Top 3 stories · Mainstream + Grassroots + Discourse · 7 AM IST daily
+            </p>
           </div>
-        )}
-      </div>
+          <NewsletterSignup />
+        </div>
+      </section>
     </div>
   );
 }
@@ -334,7 +505,7 @@ function HeroCard({ hub }: { hub: Hub }) {
  * Ground News Center Story List Item Component
  */
 function StoryListItem({ hub }: { hub: Hub }) {
-  const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
+  const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
   const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
   const topic = hub.topic || detected.topic;
   const region = hub.region || detected.region;
@@ -347,9 +518,9 @@ function StoryListItem({ hub }: { hub: Hub }) {
     <div className="py-[16px] flex justify-between items-start gap-4 border-b border-[#E5E5E0]">
       {/* Left side (text) */}
       <div className="flex-1 min-w-0 space-y-2">
-        {/* Category label · Region */}
+        {/* Category label · Region · Sources */}
         <div className="text-[11px] text-[#9CA3AF] font-sans">
-          {topic} · {region}
+          {topic} · {region} · {totalSources} {totalSources === 1 ? 'source' : 'sources'}
         </div>
 
         {/* Source Name above headline */}
@@ -493,7 +664,7 @@ function TopicSection({ topicName, hubs }: { topicName: string; hubs: Hub[] }) {
 
           <div className="space-y-4 divide-y divide-[#333333]">
             {finalLessCovered.map((hub) => {
-              const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
+              const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
               const imageUrl = hub.og_image
                 ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
                 : null;

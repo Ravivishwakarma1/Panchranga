@@ -16,9 +16,19 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 
+const REDDIT_USER_AGENT = 'web:panchranga-news-aggregator:v1.0 (by /u/panchranga)';
+
 const parser = new Parser({
   headers: {
     'User-Agent': USER_AGENT,
+    'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*;q=0.9',
+  },
+  timeout: 10000,
+});
+
+const redditParser = new Parser({
+  headers: {
+    'User-Agent': REDDIT_USER_AGENT,
     'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*;q=0.9',
   },
   timeout: 10000,
@@ -91,9 +101,9 @@ async function fetchSingleSource(source: any): Promise<IngestedItem[]> {
   if (isReddit) {
     const rssUrl = source.feed_url.replace(/\/hot\.json.*$/, '/.rss').replace(/\/+$/, '') + (source.feed_url.endsWith('.rss') ? '' : '/.rss');
     // Polite pause for Reddit anti-spam
-    await sleep(1500);
+    await sleep(2000);
 
-    const feed = await parser.parseURL(rssUrl);
+    const feed = await redditParser.parseURL(rssUrl);
     if (!feed || !feed.items || feed.items.length === 0) {
       return [];
     }
@@ -301,8 +311,18 @@ async function fetchRss() {
         }
       } catch (err: any) {
         console.log(`✗ [DISCOURSE] ${source.name}: ${err.message || err}`);
+        if (supabase && source.id && source.id.length > 10) {
+          await supabase
+            .from('sources')
+            .update({
+              last_status: 'error',
+              last_error: (err.message || 'Unknown Reddit fetch error').slice(0, 500),
+              last_attempted_at: new Date().toISOString(),
+            })
+            .eq('id', source.id);
+        }
       }
-      await sleep(2000);
+      await sleep(2500);
     }
   }
 

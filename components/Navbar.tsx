@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
@@ -32,28 +32,52 @@ export default function Navbar({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const activeSearchQuery =
-    searchQuery !== undefined ? searchQuery : searchParams.get('q') || '';
+  const qFromUrl = searchParams.get('q') || '';
+  const [internalQuery, setInternalQuery] = useState(
+    searchQuery !== undefined ? searchQuery : qFromUrl
+  );
   const activeTopic = searchParams.get('topic') || '';
+
+  useEffect(() => {
+    if (searchQuery !== undefined) {
+      setInternalQuery(searchQuery);
+    } else {
+      setInternalQuery(qFromUrl);
+    }
+  }, [searchQuery, qFromUrl]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (activeSearchQuery.trim()) {
-      router.push(`/?q=${encodeURIComponent(activeSearchQuery)}`);
+    if (internalQuery.trim()) {
+      router.push(`/?q=${encodeURIComponent(internalQuery.trim())}`);
+    } else {
+      router.push('/');
     }
   };
 
   const handleSearchInputChange = (q: string) => {
+    setInternalQuery(q);
     if (onSearchChange) {
       onSearchChange(q);
-    }
-    if (pathname !== '/' && q.trim()) {
-      router.push(`/?q=${encodeURIComponent(q)}`);
     }
   };
 
   const handleTrendingClick = (topic: string) => {
+    setInternalQuery(topic);
     router.push(`/?q=${encodeURIComponent(topic)}`);
+  };
+
+  const handleSubscribeClick = () => {
+    const el = document.getElementById('newsletter-footer');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      const emailInput = el.querySelector('input[type="email"]');
+      if (emailInput instanceof HTMLElement) {
+        emailInput.focus();
+      }
+    } else {
+      router.push('/#newsletter-footer');
+    }
   };
 
   return (
@@ -148,14 +172,14 @@ export default function Navbar({
             <input
               type="text"
               placeholder="Search stories..."
-              value={activeSearchQuery}
+              value={internalQuery}
               onChange={(e) => handleSearchInputChange(e.target.value)}
               className="w-[150px] sm:w-[220px] h-[34px] border border-[#E5E5E0] rounded-full pl-[36px] pr-[16px] py-[7px] text-[13px] font-sans text-[#1A1A1A] placeholder-[#9CA3AF] focus:outline-none focus:border-[#C0392B] bg-transparent"
             />
           </form>
 
           <button
-            onClick={() => alert('Subscription feature coming soon!')}
+            onClick={handleSubscribeClick}
             className="bg-[#1A1A1A] text-white px-[18px] py-[8px] rounded text-[13px] font-semibold font-sans ml-[12px] hover:bg-black transition-colors shrink-0"
           >
             Subscribe

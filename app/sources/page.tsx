@@ -35,7 +35,7 @@ async function getSources(): Promise<SourceItem[]> {
 
         // Try getting article counts per source
         try {
-          const { data: items } = await supabase.from('raw_items').select('source_id');
+          const { data: items } = await supabase.from('raw_items').select('source_id').limit(10000);
           if (items && items.length > 0) {
             const countMap: Record<string, number> = {};
             for (const it of items) {

@@ -112,14 +112,21 @@ function getYouTubeEmbedUrl(url: string): string | null {
 export default async function HubDetailPage({ params }: PageProps) {
   const hub = await getHubData(params.id);
 
-  if (!hub) {
+  if (!hub || !hub.items || hub.items.length === 0) {
     redirect('/');
   }
 
-  const safeItems: RawItem[] = hub.items ?? [];
-  const mainstreamItems = safeItems.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'mainstream');
-  const grassrootsItems = safeItems.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'grassroots');
-  const discourseItems = safeItems.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'discourse');
+  const safeItems: RawItem[] = (hub.items ?? []).map((item) => {
+    const rawLane = (item.lane || item.sources?.lane || item.source?.lane || '').toLowerCase();
+    const lane = rawLane === 'grassroots' ? 'grassroots' : rawLane === 'discourse' ? 'discourse' : 'mainstream';
+    return {
+      ...item,
+      lane,
+    };
+  });
+  const mainstreamItems = safeItems.filter((i) => i.lane === 'mainstream');
+  const grassrootsItems = safeItems.filter((i) => i.lane === 'grassroots');
+  const discourseItems = safeItems.filter((i) => i.lane === 'discourse');
 
   const isSensitive = checkSensitiveBypass(hub);
   const showAiSummary = safeItems.length >= 2 && !isSensitive && Boolean(hub.ai_summary);

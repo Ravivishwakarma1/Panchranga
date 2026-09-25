@@ -38,7 +38,7 @@ async function seed() {
   if (supabaseUrl && supabaseKey) {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Upsert active modern sources
+    // 1. Upsert active modern sources (match by name if existing to allow feed_url updates)
     for (const src of STARTER_SOURCES) {
       const payload: any = {
         name: src.name,
@@ -50,14 +50,31 @@ async function seed() {
         is_active: true,
       };
 
-      const { error } = await supabase
+      const { data: existing } = await supabase
         .from('sources')
-        .upsert(payload, { onConflict: 'feed_url' });
+        .select('id, feed_url')
+        .eq('name', src.name)
+        .maybeSingle();
 
-      if (error) {
-        console.error(`❌ Failed inserting ${src.name}:`, error.message);
+      if (existing) {
+        const { error } = await supabase
+          .from('sources')
+          .update(payload)
+          .eq('id', existing.id);
+        if (error) {
+          console.error(`❌ Failed updating ${src.name}:`, error.message);
+        } else {
+          console.log(`✅ Updated source: ${src.name} [${src.lane.toUpperCase()}] (${src.language})`);
+        }
       } else {
-        console.log(`✅ Synced source: ${src.name} [${src.lane.toUpperCase()}] (${src.language})`);
+        const { error } = await supabase
+          .from('sources')
+          .upsert(payload, { onConflict: 'feed_url' });
+        if (error) {
+          console.error(`❌ Failed inserting ${src.name}:`, error.message);
+        } else {
+          console.log(`✅ Inserted source: ${src.name} [${src.lane.toUpperCase()}] (${src.language})`);
+        }
       }
     }
 

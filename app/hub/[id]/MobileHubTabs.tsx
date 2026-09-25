@@ -24,7 +24,9 @@ export default function MobileHubTabs({
   grassroots,
   discourse,
 }: MobileHubTabsProps) {
-  const [activeTab, setActiveTab] = useState<'mainstream' | 'grassroots' | 'discourse'>('mainstream');
+  const initialTab: 'mainstream' | 'grassroots' | 'discourse' =
+    mainstream.length > 0 ? 'mainstream' : grassroots.length > 0 ? 'grassroots' : 'discourse';
+  const [activeTab, setActiveTab] = useState<'mainstream' | 'grassroots' | 'discourse'>(initialTab);
 
   const currentItems =
     activeTab === 'mainstream'

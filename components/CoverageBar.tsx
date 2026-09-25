@@ -71,7 +71,7 @@ export default function CoverageBar({
               Discourse {discourseCount}
             </span>
           )}
-          <span className="text-[#9CA3AF]">· {total} total sources</span>
+          <span className="text-[#9CA3AF]">· {total} {total === 1 ? 'source' : 'sources'}</span>
         </div>
       )}
     </div>

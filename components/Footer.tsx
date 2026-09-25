@@ -81,7 +81,7 @@ export default function Footer() {
           </div>
 
           {/* Column 5: Newsletter & Tools */}
-          <div className="space-y-4">
+          <div id="newsletter-footer" className="space-y-4 scroll-mt-20">
             <div>
               <h4 className="text-white font-bold text-base mb-2">Daily Newsletter</h4>
               {subscribed ? (

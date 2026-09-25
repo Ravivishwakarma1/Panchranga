@@ -1,49 +1,87 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email } = body || {};
+    const { email } = await req.json();
 
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      );
-    }
-
-    // Basic email format check
+    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
+    if (!email || !emailRegex.test(email)) {
       return NextResponse.json(
         { error: 'Invalid email address' },
         { status: 400 }
       );
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = email.toLowerCase().trim();
 
-    // Log the subscriber
-    console.log('[Newsletter Subscription]:', cleanEmail);
+    // Check if already subscribed
+    const { data: existing } = await supabase
+      .from('newsletter_subscribers')
+      .select('id, is_active')
+      .eq('email', cleanEmail)
+      .maybeSingle();
 
-    // If Supabase is available, attempt to record to subscribers / newsletter table if it exists
-    if (supabase) {
-      try {
+    if (existing) {
+      if (existing.is_active) {
+        return NextResponse.json(
+          { message: 'already_subscribed' },
+          { status: 200 }
+        );
+      } else {
+        // Reactivate if they unsubscribed before
         await supabase
           .from('newsletter_subscribers')
-          .insert([{ email: cleanEmail, subscribed_at: new Date().toISOString() }]);
-      } catch (dbErr) {
-        // Table might not exist yet, ignore error gracefully
-        console.warn('Newsletter DB insert skipped or table does not exist:', dbErr);
+          .update({ is_active: true })
+          .eq('email', cleanEmail);
+
+        return NextResponse.json(
+          { message: 'resubscribed' },
+          { status: 200 }
+        );
       }
     }
 
-    return NextResponse.json({ success: true, message: 'Subscribed successfully' });
-  } catch (error: any) {
-    console.error('Newsletter subscribe error:', error);
+    // Insert new subscriber
+    const { error } = await supabase
+      .from('newsletter_subscribers')
+      .insert({
+        email: cleanEmail,
+        source: 'website'
+      });
+
+    if (error) throw error;
+
+    // Send welcome email
+    try {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
+      await fetch(
+        `${siteUrl}/api/newsletter/welcome`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail })
+        }
+      );
+    } catch (welcomeErr) {
+      console.warn('Welcome email dispatch warning:', welcomeErr);
+    }
+
     return NextResponse.json(
-      { error: error?.message || 'Internal server error' },
+      { message: 'subscribed' },
+      { status: 201 }
+    );
+
+  } catch (error) {
+    console.error('Subscribe error:', error);
+    return NextResponse.json(
+      { error: 'Failed to subscribe' },
       { status: 500 }
     );
   }

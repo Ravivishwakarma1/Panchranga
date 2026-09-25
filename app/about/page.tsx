@@ -28,7 +28,7 @@ export default function AboutPage() {
       </div>
 
       {/* The 3 Lanes */}
-      <div className="space-y-6">
+      <section id="how-it-works" className="space-y-6 scroll-mt-20">
         <div>
           <h2 className="font-serif-title text-2xl font-bold text-[#1A1A1A]">
             The Three-Lane Structure
@@ -90,7 +90,7 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* How Clustering Works */}
       <div className="bg-white rounded-lg p-8 border border-[#E5E5E0] shadow-xs space-y-4">
@@ -175,6 +175,49 @@ export default function AboutPage() {
           <span>→</span>
         </a>
       </div>
+
+      {/* Contact & Corrections Section */}
+      <section id="contact" className="bg-white rounded-lg p-8 border border-[#E5E5E0] shadow-xs space-y-4 scroll-mt-20">
+        <div className="inline-flex items-center space-x-1.5 text-xs font-mono uppercase tracking-wider text-[#C0392B] font-bold">
+          <span>Get in Touch</span>
+        </div>
+        <h2 className="font-serif-title text-2xl font-bold text-[#1A1A1A]">
+          Contact & Corrections
+        </h2>
+        <div className="text-sm text-[#4A4A4A] space-y-3 leading-relaxed">
+          <p>
+            Panchranga is an independent open-source media intelligence initiative. We welcome corrections, feedback, suggestions for new RSS feeds, and technical contributions.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div className="p-4 rounded-lg bg-[#F9F9F8] border border-[#E5E5E0] space-y-1">
+              <h4 className="font-semibold text-sm text-[#1A1A1A]">Editorial & Corrections</h4>
+              <p className="text-xs text-[#6B6B6B]">
+                Notice an issue with source categorization or lane placement?
+              </p>
+              <a
+                href="mailto:contact@panchranga.in"
+                className="text-xs font-medium text-[#C0392B] hover:underline block pt-1"
+              >
+                contact@panchranga.in →
+              </a>
+            </div>
+            <div className="p-4 rounded-lg bg-[#F9F9F8] border border-[#E5E5E0] space-y-1">
+              <h4 className="font-semibold text-sm text-[#1A1A1A]">Code & Contributions</h4>
+              <p className="text-xs text-[#6B6B6B]">
+                Report bugs, request features, or propose new feeds on GitHub.
+              </p>
+              <a
+                href="https://github.com/Ravivishwakarma1/Panchranga/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-[#C0392B] hover:underline block pt-1"
+              >
+                Open an Issue on GitHub →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

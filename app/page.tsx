@@ -36,7 +36,8 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
               region
             )
           `)
-          .order('published_at', { ascending: false }),
+          .order('published_at', { ascending: false })
+          .limit(5000),
       ]);
 
       if (dbHubs && dbHubs.length > 0 && dbItems) {
@@ -51,10 +52,14 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
           };
         });
 
-        const hubsWithItems: TopicHub[] = dbHubs.map((hub) => ({
-          ...hub,
-          items: normalizedDbItems.filter((i) => i.cluster_id === hub.id),
-        }));
+        // Only include hubs that have at least 1 linked item in raw_items
+        const hubsWithItems: TopicHub[] = dbHubs
+          .map((hub) => ({
+            ...hub,
+            items: normalizedDbItems.filter((i) => i.cluster_id === hub.id),
+          }))
+          .filter((hub) => hub.items && hub.items.length > 0);
+
         return { hubs: hubsWithItems, rawItems: normalizedDbItems };
       }
     } catch (err) {
@@ -88,19 +93,21 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
       };
     });
 
-    const normalizedHubs: TopicHub[] = hubs.map((h) => ({
-      ...h,
-      items: (h.items || []).map((item: any) => {
-        const src = Array.isArray(item.sources) ? item.sources[0] : (item.sources || item.source);
-        return {
-          ...item,
-          lane: src?.lane || item.lane || 'mainstream',
-          source_name: src?.name || item.source_name || 'Unknown',
-          sources: src,
-          source: src,
-        };
-      }),
-    }));
+    const normalizedHubs: TopicHub[] = hubs
+      .map((h) => ({
+        ...h,
+        items: (h.items || []).map((item: any) => {
+          const src = Array.isArray(item.sources) ? item.sources[0] : (item.sources || item.source);
+          return {
+            ...item,
+            lane: src?.lane || item.lane || 'mainstream',
+            source_name: src?.name || item.source_name || 'Unknown',
+            sources: src,
+            source: src,
+          };
+        }),
+      }))
+      .filter((h) => h.items && h.items.length > 0);
 
     return { hubs: normalizedHubs, rawItems: normalizedRawItems };
   } catch (e) {
@@ -109,7 +116,11 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
   return { hubs: [], rawItems: [] };
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: { q?: string; topic?: string };
+}) {
   const { hubs, rawItems } = await getClusteredData();
 
   // Map hubs into client format with computed counts and og_image
@@ -226,7 +237,13 @@ export default async function HomePage() {
         </div>
       }
     >
-      <HomePageClient hubs={gridHubs} heroHub={heroHub} factCheckItems={factCheckItems} />
+      <HomePageClient
+        hubs={gridHubs}
+        heroHub={heroHub}
+        factCheckItems={factCheckItems}
+        initialSearchQuery={searchParams?.q || ''}
+        initialTopic={searchParams?.topic || ''}
+      />
     </Suspense>
   );
 }

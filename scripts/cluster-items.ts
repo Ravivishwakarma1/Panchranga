@@ -98,6 +98,21 @@ async function runClustering() {
         await supabase.from('raw_items').update({ cluster_id: item.cluster_id }).eq('url', item.url);
       }
     }
+
+    // Clean up orphaned hubs in topic_hubs that have 0 raw_items
+    const { data: allLinkedItems } = await supabase.from('raw_items').select('cluster_id').not('cluster_id', 'is', null).limit(10000);
+    if (allLinkedItems) {
+      const activeClusterIds = new Set(allLinkedItems.map((i) => i.cluster_id));
+      const { data: currentHubs } = await supabase.from('topic_hubs').select('id');
+      if (currentHubs) {
+        const orphanIds = currentHubs.filter((h) => !activeClusterIds.has(h.id)).map((h) => h.id);
+        if (orphanIds.length > 0) {
+          await supabase.from('topic_hubs').delete().in('id', orphanIds);
+          console.log(`🧹 Cleaned up ${orphanIds.length} orphaned topic hubs from database.`);
+        }
+      }
+    }
+
     console.log('✅ Supabase database sync complete.');
   }
 
