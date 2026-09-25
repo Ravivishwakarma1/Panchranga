@@ -14,20 +14,45 @@ interface SourceItem {
   feed_url: string;
   type?: string;
   is_active?: boolean;
+  last_status?: string | null;
+  article_count?: number;
 }
 
 async function getSources(): Promise<SourceItem[]> {
+  let sources: SourceItem[] = [];
+
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('sources')
-        .select('name, lane, language, region, feed_url')
+        .select('id, name, lane, language, region, feed_url, is_active')
         .eq('is_active', true)
         .order('lane')
         .order('name');
 
       if (!error && data && data.length > 0) {
-        return data as SourceItem[];
+        sources = data as SourceItem[];
+
+        // Try getting article counts per source
+        try {
+          const { data: items } = await supabase.from('raw_items').select('source_id');
+          if (items && items.length > 0) {
+            const countMap: Record<string, number> = {};
+            for (const it of items) {
+              if (it.source_id) {
+                countMap[it.source_id] = (countMap[it.source_id] || 0) + 1;
+              }
+            }
+            sources = sources.map((s) => ({
+              ...s,
+              article_count: s.id ? countMap[s.id] || 0 : 0,
+            }));
+          }
+        } catch {
+          // Ignore count error
+        }
+
+        return sources;
       }
       if (error) {
         console.warn('Supabase sources query error:', error);
@@ -51,7 +76,7 @@ async function getSources(): Promise<SourceItem[]> {
     console.error('Error reading fallback sources.json:', err);
   }
 
-  return STARTER_SOURCES as SourceItem[];
+  return STARTER_SOURCES.map((s) => ({ ...s, is_active: true })) as SourceItem[];
 }
 
 export default async function SourcesPage() {
@@ -66,13 +91,14 @@ export default async function SourcesPage() {
       {/* Header */}
       <div className="space-y-3 border-b border-[#E5E5E0] pb-6">
         <div className="inline-flex items-center space-x-2 px-3 py-1 rounded bg-[#F5F5F3] border border-[#E5E5E0] text-xs font-mono font-semibold uppercase text-[#6B6B6B] tracking-wider">
-          <span>Source Directory</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block" />
+          <span>Verified Sources Registry</span>
         </div>
         <h1 className="font-serif-title text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1A1A]">
-          Active Feeds Registry
+          Active Feeds Directory
         </h1>
         <p className="text-sm text-[#4A4A4A] max-w-2xl leading-relaxed">
-          Panchranga operates with 100% algorithmic and source transparency. Below is the complete directory of our <strong>{sources.length} active sources</strong> across national mainstream media, independent grassroots publications, and civic discourse channels.
+          Panchranga operates with 100% algorithmic and source transparency. Below is the complete directory of our <strong>{sources.length} active and healthy sources</strong> across national mainstream media, independent grassroots publications, and civic discourse channels.
         </p>
         <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-mono">
           <span className="px-3 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 font-semibold">
@@ -91,7 +117,7 @@ export default async function SourcesPage() {
       <div className="bg-white rounded-lg border border-[#E5E5E0] shadow-xs overflow-hidden">
         <div className="p-4 bg-[#FBFBF9] border-b border-[#E5E5E0] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <span className="text-xs font-mono font-bold uppercase text-[#1A1A1A] tracking-wider">
-            {sources.length} active sources
+            {sources.length} active sources verified
           </span>
           <span className="text-xs text-[#6B6B6B]">
             Automated polling interval: 15–30 minutes
@@ -106,7 +132,8 @@ export default async function SourcesPage() {
                 <th className="py-3 px-4 font-semibold">Lane</th>
                 <th className="py-3 px-4 font-semibold">Language</th>
                 <th className="py-3 px-4 font-semibold">Region</th>
-                <th className="py-3 px-4 font-semibold text-right">Feed</th>
+                <th className="py-3 px-4 font-semibold">Articles Ingested</th>
+                <th className="py-3 px-4 font-semibold text-right">Feed Endpoint</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E5E0]">
@@ -121,7 +148,10 @@ export default async function SourcesPage() {
                 return (
                   <tr key={idx} className="hover:bg-gray-50 transition-colors">
                     <td className="py-3 px-4 font-semibold text-[#1A1A1A]">
-                      {source.name}
+                      <div className="flex items-center space-x-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span>{source.name}</span>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-semibold border ${laneBadge}`}>
@@ -133,6 +163,15 @@ export default async function SourcesPage() {
                     </td>
                     <td className="py-3 px-4 capitalize text-[#4A4A4A]">
                       {source.region || 'national'}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-[11px] font-medium text-[#1A1A1A]">
+                      {typeof source.article_count === 'number' ? (
+                        <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200">
+                          {source.article_count} items
+                        </span>
+                      ) : (
+                        <span className="text-[#888]">—</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <a

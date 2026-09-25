@@ -2,9 +2,13 @@ name: Panchranga Scheduled Ingestion & Clustering Pipeline
 
 on:
   schedule:
-    # Run every 20 minutes
-    - cron: '*/20 * * * *'
+    # Run every 5 minutes (lowest interval supported by GitHub Actions)
+    - cron: '*/5 * * * *'
   workflow_dispatch: # Allows manual trigger from GitHub UI
+
+concurrency:
+  group: panchranga-pipeline
+  cancel-in-progress: false
 
 jobs:
   ingest-and-cluster:

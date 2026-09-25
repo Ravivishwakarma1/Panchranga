@@ -1,45 +1,75 @@
 export const TOPIC_SECTIONS = [
   'Politics',
   'Courts & Law',
-  'Environment',
   'Economy',
+  'Environment',
+  'Technology',
+  'Sports',
+  'Health',
+  'Fact-Check',
+  'Discourse & Civic',
   'UP & Bihar',
   'Maharashtra',
+  'South India',
 ];
 
 export const TOPIC_KEYWORDS: Record<string, string[]> = {
   Politics: [
     // English
-    'election', 'bjp', 'congress', 'modi', 
-    'parliament', 'minister', 'party', 'vote',
+    'election', 'bjp', 'congress', 'modi', 'rahul gandhi',
+    'parliament', 'minister', 'party', 'vote', 'cabinet', 'lok sabha', 'rajya sabha',
     // Hindi
-    'चुनाव', 'सरकार', 'नेता', 'विधानसभा',
-    'राजनीति', 'मंत्री', 'संसद',
+    'चुनाव', 'सरकार', 'नेता', 'विधानसभा', 'राजनीति', 'मंत्री', 'संसद', 'भाजपा', 'कांग्रेस', 'पीएम मोदी',
     // Marathi  
-    'निवडणूक', 'सरकार', 'आमदार', 'खासदार',
-    'मुख्यमंत्री', 'महायुती', 'महाविकास',
+    'निवडणूक', 'सरकार', 'आमदार', 'खासदार', 'मुख्यमंत्री', 'महायुती', 'महाविकास', 'पवार',
     // Malayalam
     'സർക്കാർ', 'തിരഞ്ഞെടുപ്പ്', 'മന്ത്രി',
+    // Telugu
+    'ఎన్నికలు', 'రాజకీయాలు', 'ప్రభుత్వం', 'మంత్రి',
+    // Tamil
+    'தேர்தல்', 'அரசியல்', 'அமைச்சர்', 'முதல்வர்',
+    // Gujarati
+    'ચૂંટણી', 'સરકાર', 'રાજકારણ', 'મંત્રી',
     // Common names/parties
     'shinde', 'fadnavis', 'thackeray', 
     'mva', 'nda', 'aap', 'dmk', 'aiadmk',
     'jarange', 'जरांगे', 'काँग्रेस'
   ],
   'Courts & Law': [
-    'court', 'judge', 'verdict', 'fir', 
-    'arrested', 'bail', 'supreme court',
-    'high court', 'न्यायालय', 'कोर्ट',
-    'न्यायाधीश', 'अटक', 'जामीन',
-    'हायकोर्ट', 'सर्वोच्च', 'तलवार',
-    'अपात्र', 'निकाल', 'कोടതി', 'ശിക്ഷ',
-    'गर्भपात', 'आव्हान', 'न्यायालयाचा'
+    'court', 'judge', 'verdict', 'fir', 'police', 'cbi', 'ed',
+    'arrested', 'bail', 'supreme court', 'high court', 'sc hearing', 'cji',
+    'न्यायालय', 'कोर्ट', 'न्यायाधीश', 'अटक', 'जामीन', 'सुप्रीम कोर्ट', 'हाईकोर्ट',
+    'हायकोर्ट', 'सर्वोच्च', 'तलवार', 'अपात्र', 'निकाल', 'कोടതി', 'ശിക്ഷ',
+    'తీర్పు', 'కోర్టు', 'நீதிமன்றம்', 'કોર્ટ'
+  ],
+  Economy: [
+    'economy', 'gdp', 'rbi', 'inflation', 'bank', 'market', 'sensex', 'nifty',
+    'tax', 'rupee', 'budget', 'growth', 'finance', 'chip', 'stocks', 'trade',
+    'अर्थव्यवस्था', 'शेयर बाजार', 'बजट', 'आर्थिक', 'बँक', 'महागाई', 'రిజర్వ్ బ్యాంక్'
   ],
   Environment: [
-    'flood', 'drought', 'rain', 'climate',
-    'बाढ़', 'सूखा', 'पाऊस', 'दुष्काळ',
-    'टंचाई', 'पूर', 'उपशा', 'विहीर',
-    'monsoon', 'water', 'पाणी', 'जल',
-    'pollution', 'river', 'forest'
+    'flood', 'drought', 'rain', 'climate', 'pollution', 'river', 'forest', 'monsoon', 'water',
+    'बाढ़', 'सूखा', 'पाऊस', 'दुष्काळ', 'टंचाई', 'पूर', 'उपशा', 'विहीर', 'पाणी', 'जल', 'पर्यावरण',
+    'വായുമലിനീകരണം', 'മഴ', 'వర్షం'
+  ],
+  Technology: [
+    'technology', 'tech', 'ai', 'artificial intelligence', 'isro', 'space',
+    'satellite', 'cyber', 'software', 'chip', 'semiconductor', 'gadgets',
+    'smartphone', 'google', 'apple', 'microsoft', 'चंद्रयान', 'इसरो'
+  ],
+  Sports: [
+    'cricket', 'ipl', 'bcci', 'test match', 'odi', 't20', 'wicket', 'century',
+    'football', 'fifa', 'hockey', 'olympics', 'medal', 'asian games', 'badminton',
+    'विराट', 'रोहित', 'क्रिकेट', 'सामना', 'खेळ'
+  ],
+  Health: [
+    'hospital', 'disease', 'doctor', 'health', 'death', 'dead', 'killed',
+    'accident', 'patient', 'virus', 'vaccine', 'medical', 'medicine',
+    'अस्पताल', 'डॉक्टर', 'मृत्यू', 'रुग्णालय', 'आरोग्य', 'മരണം', 'ആശുപത്രി'
+  ],
+  'Fact-Check': [
+    'fact check', 'fact-check', 'claim', 'fake news', 'viral video', 'misleading',
+    'debunked', 'दावा', 'फैक्ट चेक', 'अफवाह', 'सत्यता', 'पड़ताल'
   ],
   Maharashtra: [
     'maharashtra', 'mumbai', 'pune', 'nagpur',
@@ -53,21 +83,10 @@ export const TOPIC_KEYWORDS: Record<string, string[]> = {
     'andhra', 'telangana', 'chennai',
     'bangalore', 'bengaluru', 'hyderabad', 'dmk',
     'stalin', 'mathrubhumi', 'onmanorama',
-    // Malayalam words
-    'കേരള', 'മലയാള', 'കോടതി'
-  ],
-  Health: [
-    'hospital', 'disease', 'doctor', 
-    'health', 'death', 'dead', 'killed',
-    'accident', 'അപകടം', 'മരണം',
-    'मृत्यू', 'रुग्णालय', 'आरोग्य'
-  ],
-  Economy: [
-    'economy', 'gdp', 'rbi', 'inflation', 'bank', 'market',
-    'tax', 'rupee', 'budget', 'growth', 'finance', 'chip'
+    'കേരള', 'മലയാള', 'ఆంధ్రప్రదేశ్', 'తెలంగాణ'
   ],
   'UP & Bihar': [
-    'up', 'uttar pradesh', 'bihar', 'lucknow', 'patna', 'varanasi', 'prayagraj', 'kanpur', 'बिहार', 'उत्तर प्रदेश'
+    'up', 'uttar pradesh', 'bihar', 'lucknow', 'patna', 'varanasi', 'prayagraj', 'kanpur', 'बिहार', 'उत्तर प्रदेश', 'योगी'
   ],
 };
 
@@ -84,6 +103,7 @@ export function getRegionFromHub(hub: { title?: string }, sourceRegion?: string)
       bihar: 'Bihar',
       delhi: 'New Delhi',
       'uttar-pradesh': 'Uttar Pradesh',
+      international: 'International',
     };
     if (regionMap[sourceRegion]) return regionMap[sourceRegion];
   }
@@ -143,10 +163,27 @@ export function getRegionFromHub(hub: { title?: string }, sourceRegion?: string)
   return 'India';
 }
 
-export function getCategoryAndRegion(title: string, sourceRegion?: string): { topic: string; region: string } {
+export function getCategoryAndRegion(
+  title: string,
+  sourceRegion?: string,
+  sourceLane?: string,
+  sourceName?: string
+): { topic: string; region: string } {
   const lower = title.toLowerCase();
-  let topic = 'General';
+  const sName = (sourceName || '').toLowerCase();
 
+  // 1. Fact Checkers priority
+  if (
+    sName.includes('alt news') ||
+    sName.includes('boom live') ||
+    sName.includes('factly') ||
+    sName.includes('newschecker')
+  ) {
+    return { topic: 'Fact-Check', region: getRegionFromHub({ title }, sourceRegion) };
+  }
+
+  // 2. Keyword match
+  let topic = 'General';
   for (const [top, kws] of Object.entries(TOPIC_KEYWORDS)) {
     if (kws.some((kw) => lower.includes(kw.toLowerCase()))) {
       topic = top;
@@ -154,6 +191,12 @@ export function getCategoryAndRegion(title: string, sourceRegion?: string): { to
     }
   }
 
+  // 3. Discourse / Civic fallback
+  if (topic === 'General' && sourceLane === 'discourse') {
+    topic = 'Discourse & Civic';
+  }
+
   const region = getRegionFromHub({ title }, sourceRegion);
   return { topic, region };
 }
+

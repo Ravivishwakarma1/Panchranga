@@ -10,6 +10,9 @@ export interface Source {
   language: string;
   region?: string;
   is_active: boolean;
+  last_status?: string;
+  last_error?: string;
+  last_attempted_at?: string;
   created_at: string;
 }
 
@@ -24,6 +27,7 @@ export interface RawItem {
   raw_summary?: string;
   og_image?: string;
   og_description?: string;
+  category?: string;
   embedding?: number[];
   cluster_id?: string;
   fetched_at: string;

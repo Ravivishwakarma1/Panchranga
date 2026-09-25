@@ -11,6 +11,9 @@ create table if not exists sources (
   language text not null default 'en',
   region text, -- e.g. 'national', 'tamil-nadu', 'west-bengal'
   is_active boolean default true,
+  last_status text default 'pending',
+  last_error text,
+  last_attempted_at timestamptz,
   created_at timestamptz default now()
 );
 
@@ -24,6 +27,7 @@ create table if not exists raw_items (
   raw_summary text, -- RSS description/snippet
   og_image text, -- Open Graph preview image URL
   og_description text, -- Publisher's meta description
+  category text default 'General', -- Beat: Politics, Courts, Economy, etc.
   embedding vector(384), -- pgvector matching all-MiniLM-L6-v2 dimension
   cluster_id uuid, -- nullable until clustered
   fetched_at timestamptz default now()
@@ -39,6 +43,12 @@ create table if not exists topic_hubs (
   item_count int default 0
 );
 
+-- Migrations for existing tables
+alter table raw_items add column if not exists category text default 'General';
+alter table sources add column if not exists last_status text default 'pending';
+alter table sources add column if not exists last_error text;
+alter table sources add column if not exists last_attempted_at timestamptz;
+
 -- Add foreign key constraint for cluster_id
 do $$
 begin
@@ -53,8 +63,10 @@ end $$;
 
 -- Indexes for efficient querying & similarity lookup
 create index if not exists idx_raw_items_url on raw_items(url);
+create index if not exists idx_raw_items_category on raw_items(category);
 create index if not exists idx_raw_items_cluster on raw_items(cluster_id);
 create index if not exists idx_sources_lane on sources(lane);
+create index if not exists idx_sources_active on sources(is_active);
 create index if not exists idx_topic_hubs_updated on topic_hubs(last_updated_at desc);
 
 -- Function for pgvector cosine distance similarity lookup
