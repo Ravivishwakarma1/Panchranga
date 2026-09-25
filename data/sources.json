@@ -9,7 +9,10 @@
     "id": "source-1",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.715Z"
+    "created_at": "2026-09-25T22:47:15.314Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Times of India — Top Stories",
@@ -21,7 +24,10 @@
     "id": "source-2",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Times of India — India",
@@ -33,7 +39,10 @@
     "id": "source-3",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 20,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "NDTV — Latest",
@@ -45,7 +54,10 @@
     "id": "source-4",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "NDTV — India",
@@ -57,7 +69,10 @@
     "id": "source-5",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "News18",
@@ -69,7 +84,10 @@
     "id": "source-6",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "India Today",
@@ -81,7 +99,10 @@
     "id": "source-7",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Deccan Chronicle",
@@ -93,7 +114,10 @@
     "id": "source-8",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Deccan Herald",
@@ -105,7 +129,10 @@
     "id": "source-9",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Quint",
@@ -117,7 +144,10 @@
     "id": "source-10",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Print",
@@ -129,7 +159,10 @@
     "id": "source-11",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Free Press Journal",
@@ -141,7 +174,10 @@
     "id": "source-12",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Outlook India",
@@ -153,7 +189,10 @@
     "id": "source-13",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "PIB (Press Information Bureau)",
@@ -165,7 +204,10 @@
     "id": "source-14",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Dainik Bhaskar",
@@ -177,7 +219,10 @@
     "id": "source-15",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Amar Ujala",
@@ -189,7 +234,10 @@
     "id": "source-16",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Dainik Jagran",
@@ -201,7 +249,10 @@
     "id": "source-17",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Navbharat Times",
@@ -213,7 +264,10 @@
     "id": "source-18",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "ABP News",
@@ -225,7 +279,10 @@
     "id": "source-19",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Patrika",
@@ -237,7 +294,10 @@
     "id": "source-20",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Jansatta",
@@ -249,7 +309,10 @@
     "id": "source-21",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Zee News Hindi",
@@ -261,7 +324,10 @@
     "id": "source-22",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Puthiya Thalaimurai",
@@ -273,7 +339,10 @@
     "id": "source-23",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 0,
+    "last_fetched": null,
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Hindu Tamil",
@@ -285,7 +354,10 @@
     "id": "source-24",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 6,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Dinamalar",
@@ -297,7 +369,10 @@
     "id": "source-25",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Eenadu",
@@ -309,7 +384,10 @@
     "id": "source-26",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Sakshi",
@@ -321,7 +399,10 @@
     "id": "source-27",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Prajavani",
@@ -333,7 +414,10 @@
     "id": "source-28",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 11,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Vijay Karnataka",
@@ -345,7 +429,10 @@
     "id": "source-29",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Mathrubhumi",
@@ -357,7 +444,10 @@
     "id": "source-30",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Onmanorama",
@@ -369,7 +459,10 @@
     "id": "source-31",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Lokmat",
@@ -381,7 +474,10 @@
     "id": "source-32",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 10,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Sakal",
@@ -393,7 +489,10 @@
     "id": "source-33",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Divya Bhaskar",
@@ -405,7 +504,10 @@
     "id": "source-34",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Gujarat Samachar",
@@ -417,7 +519,10 @@
     "id": "source-35",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Anandabazar Patrika",
@@ -429,7 +534,10 @@
     "id": "source-36",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Ei Samay",
@@ -441,7 +549,160 @@
     "id": "source-37",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Punjabi Tribune",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=site:punjabitribuneonline.com&hl=pa&gl=IN&ceid=IN:pa",
+    "language": "pa",
+    "region": "punjab",
+    "id": "source-38",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Ajit",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=site:ajitjalandhar.com&hl=pa&gl=IN&ceid=IN:pa",
+    "language": "pa",
+    "region": "punjab",
+    "id": "source-39",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Jagbani",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=site:jagbani.punjabkesari.in&hl=pa&gl=IN&ceid=IN:pa",
+    "language": "pa",
+    "region": "punjab",
+    "id": "source-40",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Siasat Daily",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://urdu.siasat.com/feed/",
+    "language": "ur",
+    "region": "hyderabad",
+    "id": "source-41",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 10,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Etemaad",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://www.etemaadweekly.com/rssfeeds.php",
+    "language": "ur",
+    "region": "hyderabad",
+    "id": "source-42",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 20,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Sambad",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://sambad.in/rss",
+    "language": "or",
+    "region": "odisha",
+    "id": "source-43",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "OdishaTV (OTV)",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://odishatv.in/rss",
+    "language": "or",
+    "region": "odisha",
+    "id": "source-44",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Dharitri",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://www.dharitri.com/feed/",
+    "language": "or",
+    "region": "odisha",
+    "id": "source-45",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Asomiya Pratidin",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://www.asomiyapratidin.in/rss",
+    "language": "as",
+    "region": "assam",
+    "id": "source-46",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Pratidin Time",
+    "lane": "mainstream",
+    "type": "rss",
+    "feed_url": "https://www.pratidintime.com/rss",
+    "language": "as",
+    "region": "assam",
+    "id": "source-47",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Wire",
@@ -450,10 +711,13 @@
     "feed_url": "https://thewire.in/feed",
     "language": "en",
     "region": "national",
-    "id": "source-38",
+    "id": "source-48",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Scroll.in",
@@ -462,10 +726,13 @@
     "feed_url": "https://scroll.in/feed",
     "language": "en",
     "region": "national",
-    "id": "source-39",
+    "id": "source-49",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Newslaundry",
@@ -474,10 +741,13 @@
     "feed_url": "https://www.newslaundry.com/feed",
     "language": "en",
     "region": "national",
-    "id": "source-40",
+    "id": "source-50",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The News Minute",
@@ -486,10 +756,13 @@
     "feed_url": "https://www.thenewsminute.com/feeds/tnm-all-stories",
     "language": "en",
     "region": "south-india",
-    "id": "source-41",
+    "id": "source-51",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Article 14",
@@ -498,10 +771,13 @@
     "feed_url": "https://article-14.com/feed",
     "language": "en",
     "region": "national",
-    "id": "source-42",
+    "id": "source-52",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Mooknayak",
@@ -510,10 +786,13 @@
     "feed_url": "https://themooknayak.com/feed",
     "language": "en",
     "region": "national",
-    "id": "source-43",
+    "id": "source-53",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Newsclick",
@@ -522,10 +801,13 @@
     "feed_url": "https://www.newsclick.in/rss.xml",
     "language": "en",
     "region": "national",
-    "id": "source-44",
+    "id": "source-54",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Down To Earth",
@@ -534,10 +816,13 @@
     "feed_url": "https://www.downtoearth.org.in/rss",
     "language": "en",
     "region": "national",
-    "id": "source-45",
+    "id": "source-55",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Gaon Connection",
@@ -546,10 +831,13 @@
     "feed_url": "https://www.gaonconnection.com/feed",
     "language": "hi",
     "region": "rural-india",
-    "id": "source-46",
+    "id": "source-56",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Khabar Lahariya",
@@ -558,10 +846,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:khabarlahariya.org&hl=hi&gl=IN&ceid=IN:hi",
     "language": "hi",
     "region": "rural-india",
-    "id": "source-47",
+    "id": "source-57",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Behanbox",
@@ -570,10 +861,13 @@
     "feed_url": "https://behanbox.com/feed/",
     "language": "en",
     "region": "national",
-    "id": "source-48",
+    "id": "source-58",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 15,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Maktoob Media",
@@ -582,10 +876,13 @@
     "feed_url": "https://maktoobmedia.com/feed/",
     "language": "en",
     "region": "national",
-    "id": "source-49",
+    "id": "source-59",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "EastMojo",
@@ -594,10 +891,13 @@
     "feed_url": "https://eastmojo.com/feed/",
     "language": "en",
     "region": "north-east",
-    "id": "source-50",
+    "id": "source-60",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 10,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Caravan",
@@ -606,10 +906,13 @@
     "feed_url": "https://caravanmagazine.in/feed",
     "language": "en",
     "region": "national",
-    "id": "source-51",
+    "id": "source-61",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Leaflet",
@@ -618,10 +921,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:theleaflet.in&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "national",
-    "id": "source-52",
+    "id": "source-62",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Alt News",
@@ -630,10 +936,13 @@
     "feed_url": "https://www.altnews.in/feed/",
     "language": "en",
     "region": "national",
-    "id": "source-53",
+    "id": "source-63",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "BOOM Live",
@@ -642,10 +951,13 @@
     "feed_url": "https://www.boomlive.in/feed",
     "language": "en",
     "region": "national",
-    "id": "source-54",
+    "id": "source-64",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Newschecker",
@@ -654,10 +966,13 @@
     "feed_url": "https://newschecker.in/feed",
     "language": "en",
     "region": "national",
-    "id": "source-55",
+    "id": "source-65",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 10,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Factly",
@@ -666,10 +981,13 @@
     "feed_url": "https://factly.in/feed/",
     "language": "en",
     "region": "national",
-    "id": "source-56",
+    "id": "source-66",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Youth Ki Awaaz",
@@ -678,10 +996,13 @@
     "feed_url": "https://www.youthkiawaaz.com/feed/",
     "language": "en",
     "region": "national",
-    "id": "source-57",
+    "id": "source-67",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 10,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Sabrang India",
@@ -690,10 +1011,13 @@
     "feed_url": "https://sabrangindia.in/feed",
     "language": "en",
     "region": "national",
-    "id": "source-58",
+    "id": "source-68",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Citizen",
@@ -702,10 +1026,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:thecitizen.in&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "national",
-    "id": "source-59",
+    "id": "source-69",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Indian Express Explained",
@@ -714,10 +1041,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:indianexpress.com/article/explained&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "national",
-    "id": "source-60",
+    "id": "source-70",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "r/india",
@@ -726,10 +1056,13 @@
     "feed_url": "https://www.reddit.com/r/india/.rss",
     "language": "en",
     "region": "national",
-    "id": "source-61",
+    "id": "source-71",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 9,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "r/IndiaSpeaks",
@@ -738,10 +1071,13 @@
     "feed_url": "https://www.reddit.com/r/IndiaSpeaks/.rss",
     "language": "en",
     "region": "national",
-    "id": "source-62",
+    "id": "source-72",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 1,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "r/delhi",
@@ -750,10 +1086,13 @@
     "feed_url": "https://www.reddit.com/r/delhi/.rss",
     "language": "en",
     "region": "delhi",
-    "id": "source-63",
+    "id": "source-73",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 7,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "r/bangalore",
@@ -762,10 +1101,13 @@
     "feed_url": "https://www.reddit.com/r/bangalore/.rss",
     "language": "en",
     "region": "bengaluru",
-    "id": "source-64",
+    "id": "source-74",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 6,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "r/mumbai",
@@ -774,10 +1116,13 @@
     "feed_url": "https://www.reddit.com/r/mumbai/.rss",
     "language": "en",
     "region": "mumbai",
-    "id": "source-65",
+    "id": "source-75",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 2,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "BBC News — India",
@@ -786,10 +1131,13 @@
     "feed_url": "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml",
     "language": "en",
     "region": "international",
-    "id": "source-66",
+    "id": "source-76",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 1,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Guardian — India",
@@ -798,10 +1146,13 @@
     "feed_url": "https://www.theguardian.com/world/india/rss",
     "language": "en",
     "region": "international",
-    "id": "source-67",
+    "id": "source-77",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Reuters — India",
@@ -810,10 +1161,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:reuters.com+India&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "international",
-    "id": "source-68",
+    "id": "source-78",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Bloomberg — India",
@@ -822,10 +1176,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:bloomberg.com+India&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "international",
-    "id": "source-69",
+    "id": "source-79",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Al Jazeera — India",
@@ -834,10 +1191,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:aljazeera.com+India&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "international",
-    "id": "source-70",
+    "id": "source-80",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Deutsche Welle (DW) — India",
@@ -846,10 +1206,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:dw.com+India&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "international",
-    "id": "source-71",
+    "id": "source-81",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Diplomat — South Asia",
@@ -858,10 +1221,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:thediplomat.com+India&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "international",
-    "id": "source-72",
+    "id": "source-82",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Rest of World — India",
@@ -870,10 +1236,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:restofworld.org+India&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "international",
-    "id": "source-73",
+    "id": "source-83",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Hindustan Times",
@@ -882,10 +1251,13 @@
     "feed_url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml",
     "language": "en",
     "region": "national",
-    "id": "source-74",
+    "id": "source-84",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Economic Times",
@@ -894,10 +1266,13 @@
     "feed_url": "https://economictimes.indiatimes.com/rssfeedstopstories.cms",
     "language": "en",
     "region": "national",
-    "id": "source-75",
+    "id": "source-85",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Livemint",
@@ -906,10 +1281,13 @@
     "feed_url": "https://www.livemint.com/rss/news",
     "language": "en",
     "region": "national",
-    "id": "source-76",
+    "id": "source-86",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "Business Standard",
@@ -918,10 +1296,13 @@
     "feed_url": "https://www.business-standard.com/rss/home_page_top_stories.rss",
     "language": "en",
     "region": "national",
-    "id": "source-77",
+    "id": "source-87",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 10,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "PARI (Rural India)",
@@ -930,10 +1311,13 @@
     "feed_url": "https://news.google.com/rss/search?q=site:ruralindiaonline.org&hl=en-IN&gl=IN&ceid=IN:en",
     "language": "en",
     "region": "rural-india",
-    "id": "source-78",
+    "id": "source-88",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 30,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   },
   {
     "name": "The Wire Hindi",
@@ -942,9 +1326,117 @@
     "feed_url": "https://thewirehindi.com/feed/",
     "language": "hi",
     "region": "national",
-    "id": "source-79",
+    "id": "source-89",
     "is_active": true,
     "last_status": "healthy",
-    "created_at": "2026-09-25T13:45:31.717Z"
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 10,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Currents API",
+    "lane": "aggregator",
+    "type": "api",
+    "feed_url": "https://api.currentsapi.services/v1/latest-news?country=IN",
+    "language": "en",
+    "region": "national",
+    "id": "source-90",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 7,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Google News RSS — India",
+    "lane": "aggregator",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=India&hl=en-IN&gl=IN&ceid=IN:en",
+    "language": "en",
+    "region": "national",
+    "id": "source-91",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 17,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Google News RSS — Hindi",
+    "lane": "aggregator",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=%E0%A4%AD%E0%A4%BE%E0%A4%B0%E0%A4%A4&hl=hi&gl=IN&ceid=IN:hi",
+    "language": "hi",
+    "region": "national",
+    "id": "source-92",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 20,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Google News RSS — Punjabi",
+    "lane": "aggregator",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=India&hl=pa&gl=IN&ceid=IN:pa",
+    "language": "pa",
+    "region": "punjab",
+    "id": "source-93",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 20,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Google News RSS — Urdu",
+    "lane": "aggregator",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=India&hl=ur&gl=IN&ceid=IN:ur",
+    "language": "ur",
+    "region": "national",
+    "id": "source-94",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 8,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Google News RSS — Odia",
+    "lane": "aggregator",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=India&hl=or&gl=IN&ceid=IN:or",
+    "language": "or",
+    "region": "odisha",
+    "id": "source-95",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 3,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
+  },
+  {
+    "name": "Google News RSS — Assamese",
+    "lane": "aggregator",
+    "type": "rss",
+    "feed_url": "https://news.google.com/rss/search?q=India&hl=as&gl=IN&ceid=IN:as",
+    "language": "as",
+    "region": "assam",
+    "id": "source-96",
+    "is_active": true,
+    "last_status": "healthy",
+    "created_at": "2026-09-25T22:47:15.318Z",
+    "article_count": 3,
+    "last_fetched": "2026-09-25T22:58:47.141Z",
+    "last_attempted_at": "2026-09-25T22:58:47.141Z"
   }
 ]

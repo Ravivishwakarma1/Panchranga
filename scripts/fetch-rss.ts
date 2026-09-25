@@ -11,6 +11,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { STARTER_SOURCES, FEED_FALLBACKS } from '../lib/constants';
 import { getCategoryAndRegion } from '../lib/topics';
+import { fetchCurrentsApi } from '../lib/fetchers/currents';
+import { fetchGoogleNewsAggregator } from '../lib/fetchers/google-news';
+import { deduplicateAggregatorItems } from '../lib/dedup';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
@@ -42,7 +45,7 @@ interface IngestedItem {
   id?: string;
   source_id?: string;
   source_name: string;
-  lane: 'mainstream' | 'grassroots' | 'discourse';
+  lane: 'mainstream' | 'grassroots' | 'discourse' | 'aggregator';
   title: string;
   url: string;
   published_at: string;
@@ -147,8 +150,8 @@ async function fetchSingleSource(source: any): Promise<IngestedItem[]> {
   let targetUrl = source.feed_url;
   const fallbackUrl = FEED_FALLBACKS[source.name];
 
-  // If primary feed is known to be Cloudflare protected or syndicated, default directly to fallback
-  if (fallbackUrl && (targetUrl.includes('thewire.in') || targetUrl.includes('scroll.in') || targetUrl.includes('newslaundry.com') || targetUrl.includes('jagran.com') || targetUrl.includes('eenadu.net') || targetUrl.includes('sakshi.com') || targetUrl.includes('divyabhaskar.co.in') || targetUrl.includes('gujaratsamachar.com') || targetUrl.includes('anandabazar.com') || targetUrl.includes('khabarlahariya.org') || targetUrl.includes('article-14.com') || targetUrl.includes('downtoearth.org.in') || targetUrl.includes('patrika.com') || targetUrl.includes('jansatta.com') || targetUrl.includes('abplive.com') || targetUrl.includes('zeenews.india.com') || targetUrl.includes('navbharattimes.indiatimes.com'))) {
+  // If source has a known syndication fallback (Cloudflare, low volume, or malformed XML), default to fallback
+  if (fallbackUrl) {
     targetUrl = fallbackUrl;
   }
 
@@ -242,6 +245,20 @@ async function fetchRss() {
   const isConfigured = Boolean(supabaseUrl && supabaseKey);
   let supabase: any = null;
 
+  // Read local sources cache first if present to preserve newly added sources and IDs
+  const dataDir = path.resolve(process.cwd(), 'data');
+  const sourcesPath = path.resolve(dataDir, 'sources.json');
+  if (fs.existsSync(sourcesPath)) {
+    try {
+      const localSources = JSON.parse(fs.readFileSync(sourcesPath, 'utf-8'));
+      if (Array.isArray(localSources) && localSources.length > 0) {
+        activeSources = localSources.filter((s: any) => s.is_active !== false);
+      }
+    } catch (err: any) {
+      console.warn('Could not read data/sources.json:', err.message);
+    }
+  }
+
   if (isConfigured) {
     supabase = createClient(supabaseUrl!, supabaseKey!);
     const { data: dbSources, error } = await supabase
@@ -250,15 +267,20 @@ async function fetchRss() {
       .eq('is_active', true);
 
     if (!error && dbSources && dbSources.length > 0) {
-      activeSources = dbSources;
+      const dbMap = new Map(dbSources.map((s: any) => [s.name, s]));
+      activeSources = activeSources.map((localSrc: any) => {
+        const fromDb = dbMap.get(localSrc.name);
+        return fromDb ? { ...localSrc, ...fromDb } : localSrc;
+      });
     }
   }
 
   console.log(`📡 Ingesting up to ${MAX_ITEMS_PER_SOURCE} items from ${activeSources.length} active sources...`);
   const allItems: IngestedItem[] = [];
 
-  const standardSources = activeSources.filter((s) => s.type !== 'reddit' && !s.feed_url.includes('reddit.com'));
+  const standardSources = activeSources.filter((s) => s.type !== 'reddit' && s.lane !== 'aggregator' && !s.feed_url.includes('reddit.com'));
   const redditSources = activeSources.filter((s) => s.type === 'reddit' || s.feed_url.includes('reddit.com'));
+  const aggregatorSources = activeSources.filter((s) => s.lane === 'aggregator');
 
   // 1. Process Standard RSS Feeds with Bounded Concurrency (p-limit)
   const limit = pLimit(CONCURRENCY_LIMIT);
@@ -303,38 +325,155 @@ async function fetchRss() {
     allItems.push(...items);
   }
 
-  // 2. Process Reddit Civic Feeds Sequentially with Polite Pacing
+  // 2. Process Reddit Civic Feeds with Multi-Subreddit Ingestion
   if (redditSources.length > 0) {
-    console.log(`\n💬 Ingesting ${redditSources.length} civic discourse subreddits with pacing...`);
-    for (const source of redditSources) {
+    console.log(`\n💬 Ingesting ${redditSources.length} civic discourse subreddits...`);
+    const subNames = redditSources
+      .map((s) => s.feed_url.match(/r\/([^/]+)/i)?.[1])
+      .filter(Boolean) as string[];
+
+    let multiFeedSuccess = false;
+    if (subNames.length > 0) {
       try {
-        const items = await fetchSingleSource(source);
-        allItems.push(...items);
-        console.log(`✓ [DISCOURSE] ${source.name}: +${items.length} community posts`);
-        if (supabase && source.id && source.id.length > 10) {
-          await supabase
-            .from('sources')
-            .update({
-              last_status: 'healthy',
-              last_error: null,
-              last_attempted_at: new Date().toISOString(),
-            })
-            .eq('id', source.id);
+        const multiRssUrl = `https://www.reddit.com/r/${subNames.join('+')}/.rss`;
+        console.log(`📡 Fetching unified multi-subreddit feed: ${multiRssUrl}`);
+        const res = await fetch(multiRssUrl, {
+          headers: {
+            'User-Agent': REDDIT_USER_AGENT,
+            'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*;q=0.9',
+          },
+          signal: AbortSignal.timeout(15000),
+        });
+
+        if (res.ok) {
+          const xmlText = await res.text();
+          const feed = await redditParser.parseString(sanitizeXml(xmlText));
+          if (feed && feed.items && feed.items.length > 0) {
+            multiFeedSuccess = true;
+            const itemsBySub: Record<string, any[]> = {};
+            for (const item of feed.items) {
+              const subMatch = item.link?.match(/reddit\.com\/r\/([^/]+)/i);
+              if (subMatch && subMatch[1]) {
+                const sub = subMatch[1].toLowerCase();
+                itemsBySub[sub] = itemsBySub[sub] || [];
+                itemsBySub[sub].push(item);
+              }
+            }
+
+            for (const source of redditSources) {
+              const subName = (source.feed_url.match(/r\/([^/]+)/i)?.[1] || '').toLowerCase();
+              const subRawItems = itemsBySub[subName] || [];
+              const mappedItems: IngestedItem[] = subRawItems.slice(0, MAX_ITEMS_PER_SOURCE).map((p: any) => {
+                const cleanTitle = (p.title || 'Civic Post').trim();
+                const rawSummary = (p.contentSnippet || p.content || cleanTitle).replace(/<[^>]*>?/gm, '').trim().slice(0, 300);
+                const { topic } = getCategoryAndRegion(cleanTitle, source.region, source.lane, source.name);
+                return {
+                  source_id: source.id,
+                  source_name: source.name,
+                  lane: 'discourse' as const,
+                  title: cleanTitle,
+                  url: (p.link || p.guid || '').trim(),
+                  published_at: p.isoDate || p.pubDate || new Date().toISOString(),
+                  raw_summary: rawSummary,
+                  category: topic,
+                  og_description: `Reddit community discussion · ${source.name}`,
+                  fetched_at: new Date().toISOString(),
+                };
+              }).filter((i: any) => i.url.startsWith('http'));
+
+              allItems.push(...mappedItems);
+              console.log(`✓ [DISCOURSE] ${source.name}: +${mappedItems.length} community posts`);
+
+              if (supabase && source.id && source.id.length > 10) {
+                await supabase
+                  .from('sources')
+                  .update({
+                    last_status: 'healthy',
+                    last_error: null,
+                    last_attempted_at: new Date().toISOString(),
+                  })
+                  .eq('id', source.id);
+              }
+            }
+          }
         }
       } catch (err: any) {
-        console.log(`✗ [DISCOURSE] ${source.name}: ${err.message || err}`);
-        if (supabase && source.id && source.id.length > 10) {
-          await supabase
-            .from('sources')
-            .update({
-              last_status: 'error',
-              last_error: (err.message || 'Unknown Reddit fetch error').slice(0, 500),
-              last_attempted_at: new Date().toISOString(),
-            })
-            .eq('id', source.id);
-        }
+        console.warn(`⚠️ Multi-subreddit feed fetch failed: ${err.message}. Falling back to sequential pacing.`);
       }
-      await sleep(2500);
+    }
+
+    if (!multiFeedSuccess) {
+      for (const source of redditSources) {
+        try {
+          const items = await fetchSingleSource(source);
+          allItems.push(...items);
+          console.log(`✓ [DISCOURSE] ${source.name}: +${items.length} community posts`);
+          if (supabase && source.id && source.id.length > 10) {
+            await supabase
+              .from('sources')
+              .update({
+                last_status: 'healthy',
+                last_error: null,
+                last_attempted_at: new Date().toISOString(),
+              })
+              .eq('id', source.id);
+          }
+        } catch (err: any) {
+          console.log(`✗ [DISCOURSE] ${source.name}: ${err.message || err}`);
+          if (supabase && source.id && source.id.length > 10) {
+            await supabase
+              .from('sources')
+              .update({
+                last_status: 'error',
+                last_error: (err.message || 'Unknown Reddit fetch error').slice(0, 500),
+                last_attempted_at: new Date().toISOString(),
+              })
+              .eq('id', source.id);
+          }
+        }
+        await sleep(5000);
+      }
+    }
+  }
+
+  // 3. Process Aggregator Lane (Currents API + Google News RSS)
+  console.log('\n🌐 Ingesting Aggregator Lane (Pooled Multi-Publisher Feeds)...');
+  const sourceMap: Record<string, string> = {};
+  for (const s of activeSources) {
+    sourceMap[s.name] = s.id;
+  }
+
+  const currentsSource = activeSources.find((s) => s.name === 'Currents API');
+  const [currentsItems, googleNewsItems] = await Promise.all([
+    fetchCurrentsApi(currentsSource?.id),
+    fetchGoogleNewsAggregator(sourceMap, 20),
+  ]);
+
+  const rawAggregatorItems = [...currentsItems, ...googleNewsItems];
+  console.log(`📡 Ingested ${rawAggregatorItems.length} raw articles from aggregator lane.`);
+
+  // 4. Run Phase 4 Deduplication (±2 hour publication window with normalized-title match)
+  console.log('🔄 Deduplicating aggregator lane articles against direct feeds...');
+  const dedupResult = deduplicateAggregatorItems(rawAggregatorItems, allItems, 2);
+  console.log(
+    `📊 Deduplication complete: ${dedupResult.dedupHits} duplicates filtered (${dedupResult.hitRate} overlap rate). ${dedupResult.uniqueAggregatorItems.length} unique aggregator items retained.`
+  );
+
+  allItems.push(...dedupResult.uniqueAggregatorItems);
+
+  // Update aggregator sources status
+  for (const aggSource of aggregatorSources) {
+    const count = allItems.filter((i) => i.source_name === aggSource.name).length;
+    console.log(`✓ [AGGREGATOR] ${aggSource.name}: +${count} deduplicated stories`);
+    if (supabase && aggSource.id && aggSource.id.length > 10) {
+      await supabase
+        .from('sources')
+        .update({
+          last_status: 'healthy',
+          last_error: null,
+          last_attempted_at: new Date().toISOString(),
+        })
+        .eq('id', aggSource.id);
     }
   }
 
@@ -354,7 +493,7 @@ async function fetchRss() {
     const chunkSize = 50;
     for (let i = 0; i < uniqueItems.length; i += chunkSize) {
       const chunk = uniqueItems.slice(i, i + chunkSize).map((item) => ({
-        source_id: item.source_id,
+        source_id: (item.source_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.source_id)) ? item.source_id : null,
         title: item.title,
         url: item.url,
         published_at: item.published_at,
@@ -380,13 +519,37 @@ async function fetchRss() {
   }
 
   // Always write local cache fallback
-  const dataDir = path.resolve(process.cwd(), 'data');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
   const outputPath = path.resolve(dataDir, 'ingested-items.json');
   fs.writeFileSync(outputPath, JSON.stringify(allItems, null, 2));
   console.log(`💾 Saved ${allItems.length} raw items to local cache: ${outputPath}`);
+
+  // Update local data/sources.json with live article counts and timestamps
+  const countBySourceName: Record<string, number> = {};
+  for (const item of allItems) {
+    countBySourceName[item.source_name] = (countBySourceName[item.source_name] || 0) + 1;
+  }
+  let cachedSources: any[] = activeSources;
+  if (fs.existsSync(sourcesPath)) {
+    try {
+      cachedSources = JSON.parse(fs.readFileSync(sourcesPath, 'utf-8'));
+    } catch {}
+  }
+  const nowIso = new Date().toISOString();
+  const updatedCachedSources = cachedSources.map((s: any) => {
+    const count = countBySourceName[s.name] || 0;
+    return {
+      ...s,
+      article_count: count,
+      last_fetched: count > 0 ? nowIso : s.last_fetched || null,
+      last_attempted_at: nowIso,
+      last_status: count > 0 ? 'healthy' : (s.last_status || 'healthy'),
+    };
+  });
+  fs.writeFileSync(sourcesPath, JSON.stringify(updatedCachedSources, null, 2));
+  console.log(`💾 Updated ${updatedCachedSources.length} sources with latest article counts in ${sourcesPath}`);
 
   console.log('✨ Ingestion cycle completed successfully.');
 }

@@ -71,7 +71,11 @@ async function seed() {
           .from('sources')
           .upsert(payload, { onConflict: 'feed_url' });
         if (error) {
-          console.error(`❌ Failed inserting ${src.name}:`, error.message);
+          if (error.message?.includes('sources_lane_check') || error.message?.includes('sources_type_check')) {
+            console.warn(`⚠️ Note for ${src.name}: Supabase check constraint migration needed for '${src.lane}'/'${src.type}' (run scripts/schema.sql in Supabase SQL editor). Saved to local registry.`);
+          } else {
+            console.error(`❌ Failed inserting ${src.name}:`, error.message);
+          }
         } else {
           console.log(`✅ Inserted source: ${src.name} [${src.lane.toUpperCase()}] (${src.language})`);
         }

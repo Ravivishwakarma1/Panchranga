@@ -315,6 +315,90 @@ export const STARTER_SOURCES: Omit<Source, 'id' | 'created_at' | 'is_active'>[] 
     language: 'bn',
     region: 'west-bengal',
   },
+  // Punjabi (pa)
+  {
+    name: 'Punjabi Tribune',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=site:punjabitribuneonline.com&hl=pa&gl=IN&ceid=IN:pa',
+    language: 'pa',
+    region: 'punjab',
+  },
+  {
+    name: 'Ajit',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=site:ajitjalandhar.com&hl=pa&gl=IN&ceid=IN:pa',
+    language: 'pa',
+    region: 'punjab',
+  },
+  {
+    name: 'Jagbani',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=site:jagbani.punjabkesari.in&hl=pa&gl=IN&ceid=IN:pa',
+    language: 'pa',
+    region: 'punjab',
+  },
+  // Urdu (ur)
+  {
+    name: 'Siasat Daily',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://urdu.siasat.com/feed/',
+    language: 'ur',
+    region: 'hyderabad',
+  },
+  {
+    name: 'Etemaad',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://www.etemaadweekly.com/rssfeeds.php',
+    language: 'ur',
+    region: 'hyderabad',
+  },
+  // Odia (or)
+  {
+    name: 'Sambad',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://sambad.in/rss',
+    language: 'or',
+    region: 'odisha',
+  },
+  {
+    name: 'OdishaTV (OTV)',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://odishatv.in/rss',
+    language: 'or',
+    region: 'odisha',
+  },
+  {
+    name: 'Dharitri',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://www.dharitri.com/feed/',
+    language: 'or',
+    region: 'odisha',
+  },
+  // Assamese (as)
+  {
+    name: 'Asomiya Pratidin',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://www.asomiyapratidin.in/rss',
+    language: 'as',
+    region: 'assam',
+  },
+  {
+    name: 'Pratidin Time',
+    lane: 'mainstream',
+    type: 'rss',
+    feed_url: 'https://www.pratidintime.com/rss',
+    language: 'as',
+    region: 'assam',
+  },
 
   // ==========================================
   // 4. GRASSROOTS & INDEPENDENT JOURNALISM
@@ -671,6 +755,66 @@ export const STARTER_SOURCES: Omit<Source, 'id' | 'created_at' | 'is_active'>[] 
     language: 'hi',
     region: 'national',
   },
+
+  // ==========================================
+  // 9. AGGREGATOR LANE (MULTI-PUBLISHER POOLED FEEDS)
+  // ==========================================
+  {
+    name: 'Currents API',
+    lane: 'aggregator',
+    type: 'api',
+    feed_url: 'https://api.currentsapi.services/v1/latest-news?country=IN',
+    language: 'en',
+    region: 'national',
+  },
+  {
+    name: 'Google News RSS — India',
+    lane: 'aggregator',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=India&hl=en-IN&gl=IN&ceid=IN:en',
+    language: 'en',
+    region: 'national',
+  },
+  {
+    name: 'Google News RSS — Hindi',
+    lane: 'aggregator',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=%E0%A4%AD%E0%A4%BE%E0%A4%B0%E0%A4%A4&hl=hi&gl=IN&ceid=IN:hi',
+    language: 'hi',
+    region: 'national',
+  },
+  {
+    name: 'Google News RSS — Punjabi',
+    lane: 'aggregator',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=India&hl=pa&gl=IN&ceid=IN:pa',
+    language: 'pa',
+    region: 'punjab',
+  },
+  {
+    name: 'Google News RSS — Urdu',
+    lane: 'aggregator',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=India&hl=ur&gl=IN&ceid=IN:ur',
+    language: 'ur',
+    region: 'national',
+  },
+  {
+    name: 'Google News RSS — Odia',
+    lane: 'aggregator',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=India&hl=or&gl=IN&ceid=IN:or',
+    language: 'or',
+    region: 'odisha',
+  },
+  {
+    name: 'Google News RSS — Assamese',
+    lane: 'aggregator',
+    type: 'rss',
+    feed_url: 'https://news.google.com/rss/search?q=India&hl=as&gl=IN&ceid=IN:as',
+    language: 'as',
+    region: 'assam',
+  },
 ];
 
 // Resilient syndication fallbacks for Cloudflare-protected, WAF-blocked, or malformed feeds
@@ -690,6 +834,12 @@ export const FEED_FALLBACKS: Record<string, string> = {
   'Newslaundry': 'https://news.google.com/rss/search?q=site:newslaundry.com&hl=en-IN&gl=IN&ceid=IN:en',
   'The News Minute': 'https://news.google.com/rss/search?q=site:thenewsminute.com&hl=en-IN&gl=IN&ceid=IN:en',
   'Article 14': 'https://news.google.com/rss/search?q=site:article-14.com&hl=en-IN&gl=IN&ceid=IN:en',
+  'The Mooknayak': 'https://news.google.com/rss/search?q=site:themooknayak.com&hl=en-IN&gl=IN&ceid=IN:en',
+  'BOOM Live': 'https://news.google.com/rss/search?q=site:boomlive.in&hl=en-IN&gl=IN&ceid=IN:en',
+  'Newsclick': 'https://news.google.com/rss/search?q=site:newsclick.in&hl=en-IN&gl=IN&ceid=IN:en',
+  'Alt News': 'https://news.google.com/rss/search?q=site:altnews.in&hl=en-IN&gl=IN&ceid=IN:en',
+  'Sabrang India': 'https://news.google.com/rss/search?q=site:sabrangindia.in&hl=en-IN&gl=IN&ceid=IN:en',
+  'Factly': 'https://news.google.com/rss/search?q=site:factly.in&hl=en-IN&gl=IN&ceid=IN:en',
   'Down To Earth': 'https://news.google.com/rss/search?q=site:downtoearth.org.in&hl=en-IN&gl=IN&ceid=IN:en',
   'Gaon Connection': 'https://news.google.com/rss/search?q=site:gaonconnection.com&hl=hi&gl=IN&ceid=IN:hi',
   'Khabar Lahariya': 'https://news.google.com/rss/search?q=site:khabarlahariya.org&hl=hi&gl=IN&ceid=IN:hi',

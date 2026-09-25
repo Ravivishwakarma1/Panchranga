@@ -85,6 +85,7 @@ export default async function SourcesPage() {
   const mainstreamCount = sources.filter((s) => s.lane === 'mainstream').length;
   const grassrootsCount = sources.filter((s) => s.lane === 'grassroots').length;
   const discourseCount = sources.filter((s) => s.lane === 'discourse').length;
+  const aggregatorCount = sources.filter((s) => s.lane === 'aggregator').length;
 
   return (
     <div className="max-w-[1320px] mx-auto space-y-8 py-6 font-sans text-[#1A1A1A]">
@@ -98,7 +99,7 @@ export default async function SourcesPage() {
           Active Feeds Directory
         </h1>
         <p className="text-sm text-[#4A4A4A] max-w-2xl leading-relaxed">
-          Panchranga operates with 100% algorithmic and source transparency. Below is the complete directory of our <strong>{sources.length} active and healthy sources</strong> across national mainstream media, independent grassroots publications, and civic discourse channels.
+          Panchranga operates with 100% algorithmic and source transparency. Below is the complete directory of our <strong>{sources.length} active and healthy sources</strong> across national mainstream media, independent grassroots publications, civic discourse channels, and pooled aggregator feeds.
         </p>
         <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-mono">
           <span className="px-3 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 font-semibold">
@@ -109,6 +110,9 @@ export default async function SourcesPage() {
           </span>
           <span className="px-3 py-1 rounded bg-amber-50 border border-amber-200 text-amber-700 font-semibold">
             Discourse ({discourseCount})
+          </span>
+          <span className="px-3 py-1 rounded bg-purple-50 border border-purple-200 text-purple-700 font-semibold">
+            Aggregator ({aggregatorCount})
           </span>
         </div>
       </div>
@@ -143,6 +147,8 @@ export default async function SourcesPage() {
                     ? 'bg-blue-50 text-blue-700 border-blue-200'
                     : source.lane === 'grassroots'
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : source.lane === 'aggregator'
+                    ? 'bg-purple-50 text-purple-700 border-purple-200'
                     : 'bg-amber-50 text-amber-700 border-amber-200';
 
                 return (

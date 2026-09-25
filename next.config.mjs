@@ -9,6 +9,11 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    outputFileTracingIncludes: {
+      '/**': ['./data/**/*'],
+    },
+  },
 };
 
 export default nextConfig;

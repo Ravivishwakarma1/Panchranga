@@ -5,8 +5,8 @@ create extension if not exists vector;
 create table if not exists sources (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  lane text not null check (lane in ('mainstream', 'grassroots', 'discourse')),
-  type text not null check (type in ('rss', 'youtube', 'reddit')),
+  lane text not null check (lane in ('mainstream', 'grassroots', 'discourse', 'aggregator')),
+  type text not null check (type in ('rss', 'youtube', 'reddit', 'api')),
   feed_url text not null unique,
   language text not null default 'en',
   region text, -- e.g. 'national', 'tamil-nadu', 'west-bengal'
@@ -48,6 +48,10 @@ alter table raw_items add column if not exists category text default 'General';
 alter table sources add column if not exists last_status text default 'pending';
 alter table sources add column if not exists last_error text;
 alter table sources add column if not exists last_attempted_at timestamptz;
+alter table sources drop constraint if exists sources_lane_check;
+alter table sources add constraint sources_lane_check check (lane in ('mainstream', 'grassroots', 'discourse', 'aggregator'));
+alter table sources drop constraint if exists sources_type_check;
+alter table sources add constraint sources_type_check check (type in ('rss', 'youtube', 'reddit', 'api'));
 
 -- Add foreign key constraint for cluster_id
 do $$

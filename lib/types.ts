@@ -1,5 +1,5 @@
-export type LaneType = 'mainstream' | 'grassroots' | 'discourse';
-export type SourceType = 'rss' | 'youtube' | 'reddit';
+export type LaneType = 'mainstream' | 'grassroots' | 'discourse' | 'aggregator';
+export type SourceType = 'rss' | 'youtube' | 'reddit' | 'api';
 
 export interface Source {
   id: string;
