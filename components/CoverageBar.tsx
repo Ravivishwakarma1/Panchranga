@@ -15,12 +15,8 @@ export default function CoverageBar({
 }: CoverageBarProps) {
   const total = mainstreamCount + grassrootsCount + discourseCount;
 
-  if (total < 2) {
-    return (
-      <span className="text-[11px] text-[#9CA3AF] font-sans font-medium">
-        1 source
-      </span>
-    );
+  if (total === 0) {
+    return null;
   }
 
   const mainstreamPct = Math.round((mainstreamCount / total) * 100);

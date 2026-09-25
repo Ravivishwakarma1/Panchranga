@@ -3,6 +3,7 @@ import path from 'path';
 import { Suspense } from 'react';
 import { TopicHub, RawItem } from '@/lib/types';
 import HomePageClient, { Hub, FactCheckItem } from '@/components/HomePageClient';
+import { getCategoryAndRegion } from '@/lib/topics';
 
 import { supabase } from '@/lib/supabase/client';
 
@@ -14,15 +15,47 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
     try {
       const [{ data: dbHubs }, { data: dbItems }] = await Promise.all([
         supabase.from('topic_hubs').select('*').order('last_updated_at', { ascending: false }),
-        supabase.from('raw_items').select('*, source:sources(*)').order('published_at', { ascending: false }),
+        supabase
+          .from('raw_items')
+          .select(`
+            id,
+            title,
+            url,
+            published_at,
+            og_image,
+            og_description,
+            raw_summary,
+            cluster_id,
+            fetched_at,
+            sources:source_id (
+              id,
+              name,
+              lane,
+              type,
+              language,
+              region
+            )
+          `)
+          .order('published_at', { ascending: false }),
       ]);
 
       if (dbHubs && dbHubs.length > 0 && dbItems) {
+        const normalizedDbItems: RawItem[] = (dbItems || []).map((item: any) => {
+          const src = Array.isArray(item.sources) ? item.sources[0] : (item.sources || item.source);
+          return {
+            ...item,
+            lane: src?.lane || item.lane || 'mainstream',
+            source_name: src?.name || item.source_name || 'Unknown',
+            sources: src,
+            source: src,
+          };
+        });
+
         const hubsWithItems: TopicHub[] = dbHubs.map((hub) => ({
           ...hub,
-          items: dbItems.filter((i) => i.cluster_id === hub.id),
+          items: normalizedDbItems.filter((i) => i.cluster_id === hub.id),
         }));
-        return { hubs: hubsWithItems, rawItems: dbItems as any };
+        return { hubs: hubsWithItems, rawItems: normalizedDbItems };
       }
     } catch (err) {
       console.warn('Supabase query failed, falling back to local files:', err);
@@ -44,7 +77,32 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
       rawItems = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
     }
 
-    return { hubs, rawItems };
+    const normalizedRawItems: RawItem[] = (rawItems || []).map((item: any) => {
+      const src = Array.isArray(item.sources) ? item.sources[0] : (item.sources || item.source);
+      return {
+        ...item,
+        lane: src?.lane || item.lane || 'mainstream',
+        source_name: src?.name || item.source_name || 'Unknown',
+        sources: src,
+        source: src,
+      };
+    });
+
+    const normalizedHubs: TopicHub[] = hubs.map((h) => ({
+      ...h,
+      items: (h.items || []).map((item: any) => {
+        const src = Array.isArray(item.sources) ? item.sources[0] : (item.sources || item.source);
+        return {
+          ...item,
+          lane: src?.lane || item.lane || 'mainstream',
+          source_name: src?.name || item.source_name || 'Unknown',
+          sources: src,
+          source: src,
+        };
+      }),
+    }));
+
+    return { hubs: normalizedHubs, rawItems: normalizedRawItems };
   } catch (e) {
     console.error('Error reading local topic hubs data:', e);
   }
@@ -56,11 +114,38 @@ export default async function HomePage() {
 
   // Map hubs into client format with computed counts and og_image
   const processedHubs: Hub[] = hubs.map((hub) => {
-    const items = hub.items ?? [];
+    const rawList = hub.items ?? [];
+    const items = rawList.map((i: any) => {
+      const src = Array.isArray(i.sources) ? i.sources[0] : (i.sources || i.source);
+      return {
+        ...i,
+        lane: src?.lane || i.lane || 'mainstream',
+        source_name: src?.name || i.source_name || 'Unknown',
+        sources: src,
+        source: src,
+      };
+    });
+
     const firstOgItem = items.find((i) => i.og_image);
-    const mainstreamCount = items.filter((i) => i.lane === 'mainstream').length;
-    const grassrootsCount = items.filter((i) => i.lane === 'grassroots').length;
-    const discourseCount = items.filter((i) => i.lane === 'discourse').length;
+    const mainstreamCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'mainstream').length;
+    const grassrootsCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'grassroots').length;
+    const discourseCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'discourse').length;
+
+    const firstSource =
+      firstOgItem?.sources?.name ||
+      firstOgItem?.source?.name ||
+      firstOgItem?.source_name ||
+      items[0]?.sources?.name ||
+      items[0]?.source?.name ||
+      items[0]?.source_name ||
+      'Panchranga';
+
+    const sourceRegion =
+      items.find((i) => (i.sources?.region || i.source?.region) && (i.sources?.region || i.source?.region) !== 'national')?.sources?.region ||
+      items[0]?.sources?.region ||
+      items[0]?.source?.region;
+
+    const { topic, region } = getCategoryAndRegion(hub.title ?? '', sourceRegion);
 
     return {
       id: hub.id,
@@ -71,7 +156,10 @@ export default async function HomePage() {
       mainstream_count: mainstreamCount,
       grassroots_count: grassrootsCount,
       discourse_count: discourseCount,
-      first_source_name: firstOgItem?.source_name ?? items[0]?.source_name ?? 'Panchranga',
+      first_source_name: firstSource,
+      topic,
+      region,
+      sources: items[0]?.sources || items[0]?.source || { name: firstSource, region: sourceRegion },
     };
   });
 
@@ -89,14 +177,14 @@ export default async function HomePage() {
   const factCheckNames = ['alt news', 'boom', 'newschecker', 'factly'];
   let factCheckItems: FactCheckItem[] = rawItems
     .filter((item) => {
-      const sName = (item.source_name || item.source?.name || '').toLowerCase();
+      const sName = (item.sources?.name || item.source?.name || item.source_name || '').toLowerCase();
       const isFactCheckSource = factCheckNames.some((fc) => sName.includes(fc));
       return isFactCheckSource;
     })
     .slice(0, 3)
     .map((item) => ({
       id: item.id,
-      source_name: item.source_name || 'Fact Check',
+      source_name: item.sources?.name || item.source?.name || item.source_name || 'Fact Check',
       title: item.title,
       url: item.url,
       published_at: item.published_at,

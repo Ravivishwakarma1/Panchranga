@@ -16,6 +16,9 @@ export interface Hub {
   grassroots_count: number;
   discourse_count: number;
   first_source_name?: string;
+  sources?: { name?: string; lane?: string; region?: string };
+  region?: string;
+  topic?: string;
 }
 
 export interface FactCheckItem {
@@ -25,45 +28,12 @@ export interface FactCheckItem {
   url: string;
   published_at: string;
 }
-
-const TOPIC_SECTIONS = [
-  'Politics',
-  'Courts & Law',
-  'Environment',
-  'Economy',
-  'UP & Bihar',
-  'Maharashtra',
-];
-
-const TOPIC_KEYWORDS: Record<string, string[]> = {
-  Politics: ['election', 'bjp', 'congress', 'modi', 'parliament', 'minister', 'party', 'vote', 'pm', 'cm', 'governor', 'rajniti'],
-  'Courts & Law': ['court', 'supreme court', 'high court', 'judge', 'verdict', 'case', 'fir', 'arrest', 'bail', 'law', 'justice'],
-  Environment: ['climate', 'flood', 'pollution', 'monsoon', 'rain', 'forest', 'river', 'drought', 'disaster', 'environment'],
-  Economy: ['economy', 'gdp', 'rbi', 'inflation', 'bank', 'market', 'tax', 'rupee', 'budget', 'growth', 'finance'],
-  'UP & Bihar': ['up', 'uttar pradesh', 'bihar', 'lucknow', 'patna', 'varanasi', 'prayagraj', 'kanpur'],
-  Maharashtra: ['maharashtra', 'mumbai', 'pune', 'nagpur', 'thackeray', 'shinde', 'fadnavis', 'mva', 'mahayuti'],
-};
-
-function getCategoryAndRegion(title: string): { topic: string; region: string } {
-  const lower = title.toLowerCase();
-  let topic = 'General';
-  let region = 'India';
-
-  for (const [top, kws] of Object.entries(TOPIC_KEYWORDS)) {
-    if (kws.some((kw) => lower.includes(kw))) {
-      topic = top;
-      break;
-    }
-  }
-
-  if (lower.includes('mumbai') || lower.includes('maharashtra') || lower.includes('pune')) region = 'Maharashtra';
-  else if (lower.includes('delhi') || lower.includes('supreme court') || lower.includes('parliament')) region = 'New Delhi';
-  else if (lower.includes('up') || lower.includes('uttar pradesh') || lower.includes('lucknow')) region = 'Uttar Pradesh';
-  else if (lower.includes('bihar') || lower.includes('patna')) region = 'Bihar';
-  else if (lower.includes('bengaluru') || lower.includes('karnataka') || lower.includes('kerala') || lower.includes('tamil')) region = 'South India';
-
-  return { topic, region };
-}
+import {
+  TOPIC_SECTIONS,
+  TOPIC_KEYWORDS,
+  getCategoryAndRegion,
+  getRegionFromHub,
+} from '@/lib/topics';
 
 export default function HomePageClient({
   hubs,
@@ -134,11 +104,11 @@ export default function HomePageClient({
             <h2 className="font-sans text-[20px] font-bold text-[#1A1A1A] mb-[16px] pb-2 border-b-2 border-[#1A1A1A]">
               Today's Briefing
             </h2>
-
             <div className="divide-y divide-[#E5E5E0]">
               {todaysBriefingHubs.map((hub) => {
                 const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
-                const { region } = getCategoryAndRegion(hub.title);
+                const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
+                const region = hub.region || detected.region;
                 const imageUrl = hub.og_image
                   ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
                   : null;
@@ -365,7 +335,10 @@ function HeroCard({ hub }: { hub: Hub }) {
  */
 function StoryListItem({ hub }: { hub: Hub }) {
   const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
-  const { topic, region } = getCategoryAndRegion(hub.title);
+  const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
+  const topic = hub.topic || detected.topic;
+  const region = hub.region || detected.region;
+  const sourceName = hub.sources?.name || hub.first_source_name || 'Unknown';
   const imageUrl = hub.og_image
     ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
     : null;
@@ -378,6 +351,22 @@ function StoryListItem({ hub }: { hub: Hub }) {
         <div className="text-[11px] text-[#9CA3AF] font-sans">
           {topic} · {region}
         </div>
+
+        {/* Source Name above headline */}
+        <span
+          style={{
+            fontSize: '11px',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 600,
+            color: '#C0392B',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            display: 'block',
+            marginBottom: '4px',
+          }}
+        >
+          {sourceName}
+        </span>
 
         {/* Headline */}
         <Link href={`/hub/${encodeURIComponent(hub.id)}`} className="group">

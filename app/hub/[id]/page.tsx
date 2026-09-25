@@ -23,15 +23,50 @@ async function getHubData(id: string): Promise<TopicHub | null> {
   // 1. Try querying Supabase Postgres if configured
   if (supabase) {
     try {
-      const [{ data: dbHub }, { data: dbItems }] = await Promise.all([
+      const [{ data: dbHub, error: hubErr }, { data: dbItems, error: itemsErr }] = await Promise.all([
         supabase.from('topic_hubs').select('*').eq('id', id).maybeSingle(),
-        supabase.from('raw_items').select('*, source:sources(*)').eq('cluster_id', id),
+        supabase
+          .from('raw_items')
+          .select(`
+            id,
+            title,
+            url,
+            published_at,
+            og_image,
+            og_description,
+            raw_summary,
+            fetched_at,
+            sources:source_id (
+              id,
+              name,
+              lane,
+              type,
+              language,
+              region
+            )
+          `)
+          .eq('cluster_id', id)
+          .order('published_at', { ascending: false }),
       ]);
 
+      if (hubErr) console.warn('Supabase topic_hubs query error:', hubErr);
+      if (itemsErr) console.warn('Supabase raw_items query error:', itemsErr);
+
       if (dbHub) {
+        const normalizedItems: RawItem[] = (dbItems || []).map((item: any) => {
+          const src = Array.isArray(item.sources) ? item.sources[0] : (item.sources || item.source);
+          return {
+            ...item,
+            lane: src?.lane || item.lane || 'mainstream',
+            source_name: src?.name || item.source_name || 'Unknown',
+            sources: src,
+            source: src,
+          };
+        });
+
         return {
           ...dbHub,
-          items: dbItems || [],
+          items: normalizedItems,
         };
       }
     } catch (err) {
@@ -45,7 +80,22 @@ async function getHubData(id: string): Promise<TopicHub | null> {
     if (fs.existsSync(hubsPath)) {
       const hubs: TopicHub[] = JSON.parse(fs.readFileSync(hubsPath, 'utf-8'));
       const hub = hubs.find((h) => h.id === id || encodeURIComponent(h.id) === id);
-      if (hub) return hub;
+      if (hub) {
+        const normalizedItems: RawItem[] = (hub.items || []).map((item: any) => {
+          const src = Array.isArray(item.sources) ? item.sources[0] : (item.sources || item.source);
+          return {
+            ...item,
+            lane: src?.lane || item.lane || 'mainstream',
+            source_name: src?.name || item.source_name || 'Unknown',
+            sources: src,
+            source: src,
+          };
+        });
+        return {
+          ...hub,
+          items: normalizedItems,
+        };
+      }
     }
   } catch (e) {
     console.error('Error fetching hub data:', e);
@@ -69,9 +119,9 @@ export default async function HubDetailPage({ params }: PageProps) {
   }
 
   const safeItems: RawItem[] = hub.items ?? [];
-  const mainstreamItems = safeItems.filter((i) => i.lane === 'mainstream');
-  const grassrootsItems = safeItems.filter((i) => i.lane === 'grassroots');
-  const discourseItems = safeItems.filter((i) => i.lane === 'discourse');
+  const mainstreamItems = safeItems.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'mainstream');
+  const grassrootsItems = safeItems.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'grassroots');
+  const discourseItems = safeItems.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'discourse');
 
   const isSensitive = checkSensitiveBypass(hub);
   const showAiSummary = safeItems.length >= 2 && !isSensitive && Boolean(hub.ai_summary);
@@ -229,11 +279,62 @@ export default async function HubDetailPage({ params }: PageProps) {
  */
 function ArticleCard({ item }: { item: RawItem }) {
   const ytEmbedUrl = getYouTubeEmbedUrl(item.url);
-  const isReddit = item.lane === 'discourse' || item.url?.includes('reddit.com');
+  const isReddit = (item.lane || item.sources?.lane || item.source?.lane) === 'discourse' || item.url?.includes('reddit.com');
 
   const imageUrl = item.og_image
     ? `/api/og-image?url=${encodeURIComponent(item.og_image)}`
     : null;
+
+  const sourceName = item.sources?.name || item.source?.name || item.source_name || (isReddit ? 'Reddit' : ytEmbedUrl ? 'YouTube' : 'Publisher');
+  const lane = item.sources?.lane || item.source?.lane || item.lane || 'mainstream';
+  const laneLabel =
+    lane === 'mainstream'
+      ? '· Mainstream'
+      : lane === 'grassroots'
+      ? '· Grassroots'
+      : '· Public Discourse';
+
+  const sourceHeader = (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        marginBottom: '6px',
+      }}
+    >
+      <span
+        style={{
+          fontSize: '11px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 700,
+          color: '#C0392B',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}
+      >
+        {sourceName}
+      </span>
+      <span
+        style={{
+          fontSize: '11px',
+          color: '#9CA3AF',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        {laneLabel}
+      </span>
+      <span
+        style={{
+          fontSize: '11px',
+          color: '#9CA3AF',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        · {timeAgo(item.published_at || item.fetched_at)}
+      </span>
+    </div>
+  );
 
   // YouTube Video Embed (Full embed player)
   if (ytEmbedUrl) {
@@ -248,12 +349,20 @@ function ArticleCard({ item }: { item: RawItem }) {
             allowFullScreen
           />
         </div>
-        <div className="text-[11px] font-mono uppercase text-[#6B6B6B]">
-          {item.source_name || 'YouTube Video'} · {timeAgo(item.published_at)}
-        </div>
-        <h4 className="font-serif-title text-[15px] font-bold text-[#1A1A1A] leading-snug">
+        {sourceHeader}
+        <h4 className="font-serif-title text-[17px] font-bold text-[#1A1A1A] leading-snug">
           {item.title ?? 'Untitled Video'}
         </h4>
+        <div className="pt-1">
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-[#C0392B] hover:underline font-semibold"
+          >
+            Watch at {sourceName} →
+          </a>
+        </div>
       </div>
     );
   }
@@ -262,10 +371,8 @@ function ArticleCard({ item }: { item: RawItem }) {
   if (isReddit) {
     return (
       <div className="pt-6 first:pt-0 space-y-2">
-        <div className="text-[11px] font-mono uppercase text-[#6B6B6B]">
-          {item.source_name || 'Reddit Discussion'} · {timeAgo(item.published_at)}
-        </div>
-        <h4 className="font-serif-title text-[15px] font-bold text-[#1A1A1A] leading-snug">
+        {sourceHeader}
+        <h4 className="font-serif-title text-[17px] font-bold text-[#1A1A1A] leading-snug">
           {item.title ?? 'Untitled Thread'}
         </h4>
         {item.og_description && (
@@ -278,9 +385,9 @@ function ArticleCard({ item }: { item: RawItem }) {
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#C0392B] hover:underline font-medium"
+            className="text-xs text-[#C0392B] hover:underline font-semibold"
           >
-            Read at {item.source_name || 'Reddit'} →
+            Read at {sourceName} →
           </a>
         </div>
       </div>
@@ -296,16 +403,14 @@ function ArticleCard({ item }: { item: RawItem }) {
             src={imageUrl}
             alt={item.title ?? 'Article image'}
             className="w-20 h-20 object-cover rounded"
-            fallbackText={item.source_name || 'News'}
+            fallbackText={sourceName}
           />
         </div>
 
         <div className="space-y-1.5 flex-1 min-w-0">
-          <div className="text-[11px] font-mono uppercase text-[#6B6B6B]">
-            {item.source_name || 'Publisher'} · {timeAgo(item.published_at)}
-          </div>
+          {sourceHeader}
 
-          <h4 className="font-serif-title text-[15px] font-bold text-[#1A1A1A] leading-snug">
+          <h4 className="font-serif-title text-[17px] font-bold text-[#1A1A1A] leading-snug">
             {item.title ?? 'Untitled Article'}
           </h4>
 
@@ -315,14 +420,14 @@ function ArticleCard({ item }: { item: RawItem }) {
             </p>
           )}
 
-          <div className="pt-0.5">
+          <div className="pt-1">
             <a
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-[#C0392B] hover:underline font-medium"
+              className="text-xs text-[#C0392B] hover:underline font-semibold"
             >
-              Read at {item.source_name || 'Source'} →
+              Read at {sourceName} →
             </a>
           </div>
         </div>

@@ -76,10 +76,61 @@ export default function MobileHubTabs({
         ) : (
           currentItems.map((item, idx) => {
             const ytEmbedUrl = getYouTubeEmbedUrl(item.url);
-            const isReddit = item.lane === 'discourse' || item.url?.includes('reddit.com');
+            const isReddit = (item.lane || item.sources?.lane || item.source?.lane) === 'discourse' || item.url?.includes('reddit.com');
             const imageUrl = item.og_image
               ? `/api/og-image?url=${encodeURIComponent(item.og_image)}`
               : null;
+
+            const sourceName = item.sources?.name || item.source?.name || item.source_name || (isReddit ? 'Reddit' : ytEmbedUrl ? 'YouTube' : 'Publisher');
+            const lane = item.sources?.lane || item.source?.lane || item.lane || 'mainstream';
+            const laneLabel =
+              lane === 'mainstream'
+                ? '· Mainstream'
+                : lane === 'grassroots'
+                ? '· Grassroots'
+                : '· Public Discourse';
+
+            const sourceHeader = (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '6px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 700,
+                    color: '#C0392B',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  {sourceName}
+                </span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#9CA3AF',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {laneLabel}
+                </span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#9CA3AF',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  · {timeAgo(item.published_at || item.fetched_at)}
+                </span>
+              </div>
+            );
 
             if (ytEmbedUrl) {
               return (
@@ -93,12 +144,20 @@ export default function MobileHubTabs({
                       allowFullScreen
                     />
                   </div>
-                  <div className="text-[11px] font-mono uppercase text-[#6B6B6B]">
-                    {item.source_name || 'YouTube Video'} · {timeAgo(item.published_at)}
-                  </div>
-                  <h4 className="font-serif-title text-[15px] font-bold text-[#1A1A1A] leading-snug">
+                  {sourceHeader}
+                  <h4 className="font-serif-title text-[17px] font-bold text-[#1A1A1A] leading-snug">
                     {item.title ?? 'Untitled Video'}
                   </h4>
+                  <div className="pt-1">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-[#C0392B] hover:underline font-semibold"
+                    >
+                      Watch at {sourceName} →
+                    </a>
+                  </div>
                 </div>
               );
             }
@@ -106,10 +165,8 @@ export default function MobileHubTabs({
             if (isReddit) {
               return (
                 <div key={item.id || idx} className="pt-6 first:pt-0 space-y-2">
-                  <div className="text-[11px] font-mono uppercase text-[#6B6B6B]">
-                    {item.source_name || 'Reddit Discussion'} · {timeAgo(item.published_at)}
-                  </div>
-                  <h4 className="font-serif-title text-[15px] font-bold text-[#1A1A1A] leading-snug">
+                  {sourceHeader}
+                  <h4 className="font-serif-title text-[17px] font-bold text-[#1A1A1A] leading-snug">
                     {item.title ?? 'Untitled Thread'}
                   </h4>
                   {item.og_description && (
@@ -122,9 +179,9 @@ export default function MobileHubTabs({
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-[#C0392B] hover:underline font-medium"
+                      className="text-xs text-[#C0392B] hover:underline font-semibold"
                     >
-                      Read at {item.source_name || 'Reddit'} →
+                      Read at {sourceName} →
                     </a>
                   </div>
                 </div>
@@ -139,16 +196,14 @@ export default function MobileHubTabs({
                       src={imageUrl}
                       alt={item.title ?? 'Article image'}
                       className="w-20 h-20 object-cover rounded"
-                      fallbackText={item.source_name || 'News'}
+                      fallbackText={sourceName}
                     />
                   </div>
 
                   <div className="space-y-1.5 flex-1 min-w-0">
-                    <div className="text-[11px] font-mono uppercase text-[#6B6B6B]">
-                      {item.source_name || 'Publisher'} · {timeAgo(item.published_at)}
-                    </div>
+                    {sourceHeader}
 
-                    <h4 className="font-serif-title text-[15px] font-bold text-[#1A1A1A] leading-snug">
+                    <h4 className="font-serif-title text-[17px] font-bold text-[#1A1A1A] leading-snug">
                       {item.title ?? 'Untitled Article'}
                     </h4>
 
@@ -158,14 +213,14 @@ export default function MobileHubTabs({
                       </p>
                     )}
 
-                    <div className="pt-0.5">
+                    <div className="pt-1">
                       <a
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-[#C0392B] hover:underline font-medium"
+                        className="text-xs text-[#C0392B] hover:underline font-semibold"
                       >
-                        Read at {item.source_name || 'Source'} →
+                        Read at {sourceName} →
                       </a>
                     </div>
                   </div>

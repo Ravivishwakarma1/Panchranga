@@ -29,6 +29,7 @@ export interface RawItem {
   fetched_at: string;
   // Joined fields
   source?: Source;
+  sources?: Source;
 }
 
 export interface TopicHub {
