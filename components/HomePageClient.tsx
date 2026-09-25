@@ -106,7 +106,7 @@ export default function HomePageClient({
             </h2>
             <div className="divide-y divide-[#E5E5E0]">
               {todaysBriefingHubs.map((hub) => {
-                const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+                const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
                 const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
                 const region = hub.region || detected.region;
                 const imageUrl = hub.og_image
@@ -172,7 +172,7 @@ export default function HomePageClient({
 
               <div className="divide-y divide-[#E5E5E0]">
                 {mostCoveredHubs.map((hub) => {
-                  const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+                  const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
                   const imageUrl = hub.og_image
                     ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
                     : null;
@@ -316,12 +316,12 @@ function HeroCard({ hub }: { hub: Hub }) {
           </div>
 
           <div className="flex items-center justify-between text-xs text-gray-300 pt-1">
-            <span>{totalSources} {totalSources === 1 ? 'source' : 'sources'} · Updated {timeAgo(hub.last_updated_at)}</span>
+            <span>Updated {timeAgo(hub.last_updated_at)}</span>
             <Link
               href={`/hub/${encodeURIComponent(hub.id)}`}
               className="text-white font-semibold hover:underline"
             >
-              Read full coverage →
+              Explore hub →
             </Link>
           </div>
         </div>
@@ -334,7 +334,7 @@ function HeroCard({ hub }: { hub: Hub }) {
  * Ground News Center Story List Item Component
  */
 function StoryListItem({ hub }: { hub: Hub }) {
-  const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+  const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
   const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
   const topic = hub.topic || detected.topic;
   const region = hub.region || detected.region;
@@ -385,9 +385,15 @@ function StoryListItem({ hub }: { hub: Hub }) {
           />
         </div>
 
-        {/* Source count text */}
-        <div className="text-[12px] text-[#6B6B6B] font-sans">
-          {totalSources} {totalSources === 1 ? 'source' : 'sources'}
+        {/* Card Footer: [timestamp left] [Explore hub → right] */}
+        <div className="flex items-center justify-between text-xs text-[#6B6B6B] pt-1">
+          <span>Updated {timeAgo(hub.last_updated_at)}</span>
+          <Link
+            href={`/hub/${encodeURIComponent(hub.id)}`}
+            className="text-[#C0392B] font-medium hover:underline text-xs"
+          >
+            Explore hub →
+          </Link>
         </div>
       </div>
 
@@ -487,7 +493,7 @@ function TopicSection({ topicName, hubs }: { topicName: string; hubs: Hub[] }) {
 
           <div className="space-y-4 divide-y divide-[#333333]">
             {finalLessCovered.map((hub) => {
-              const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+              const totalSources = Math.max(hub.mainstream_count + hub.grassroots_count + hub.discourse_count, 1);
               const imageUrl = hub.og_image
                 ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
                 : null;

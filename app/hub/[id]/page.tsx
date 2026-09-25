@@ -7,8 +7,6 @@ import { checkSensitiveBypass } from '@/lib/summarizer';
 import CoverageBar from '@/components/CoverageBar';
 import SafeImage from '@/components/SafeImage';
 import { timeAgo } from '@/lib/utils';
-import MobileHubTabs from './MobileHubTabs';
-
 import { supabase } from '@/lib/supabase/client';
 
 export const revalidate = 60;
@@ -126,12 +124,6 @@ export default async function HubDetailPage({ params }: PageProps) {
   const isSensitive = checkSensitiveBypass(hub);
   const showAiSummary = safeItems.length >= 2 && !isSensitive && Boolean(hub.ai_summary);
 
-  // First article with og_image for hero background
-  const heroOgImage = safeItems.find((i) => i.og_image)?.og_image;
-  const heroImageUrl = heroOgImage
-    ? `/api/og-image?url=${encodeURIComponent(heroOgImage)}`
-    : null;
-
   return (
     <div className="max-w-[1320px] mx-auto space-y-6 pb-12">
       {/* Top Back Navigation Link */}
@@ -143,28 +135,17 @@ export default async function HubDetailPage({ params }: PageProps) {
         <span>Back to Topic Hubs</span>
       </Link>
 
-      {/* Hero Banner with SafeImage */}
-      <div className="relative w-full h-[300px] rounded-lg overflow-hidden bg-[#3A3835] shadow-sm group">
-        <SafeImage
-          src={heroImageUrl}
-          alt={hub.title ?? 'Topic Hub'}
-          className="w-full h-full object-cover"
-          fallbackText="Panchranga Hub"
-        />
-
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
-
-        <div className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-end text-white z-10 space-y-2 pointer-events-none">
-          <div className="text-[11px] font-mono tracking-wider uppercase text-gray-300">
-            Topic Hub · {safeItems.length} {safeItems.length === 1 ? 'Source' : 'Sources'} · First seen {timeAgo(hub.first_seen_at)}
-          </div>
-          <h1 className="font-serif-title text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-            {hub.title ?? 'Untitled Topic Hub'}
-          </h1>
+      {/* 1. Hub Title (h1) */}
+      <div className="space-y-2 border-b border-[#E5E5E0] pb-4">
+        <div className="text-[11px] font-mono tracking-wider uppercase text-[#6B6B6B]">
+          Topic Hub · {safeItems.length} {safeItems.length === 1 ? 'Source' : 'Sources'} · First seen {timeAgo(hub.first_seen_at)}
         </div>
+        <h1 className="font-serif-title text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-[#1A1A1A]">
+          {hub.title ?? 'Untitled Topic Hub'}
+        </h1>
       </div>
 
-      {/* Prominent Coverage Bar below Hero */}
+      {/* 2. Coverage Bar */}
       <div className="bg-white p-4 rounded-lg border border-[#E5E5E0] shadow-xs space-y-2">
         <div className="text-xs font-mono uppercase tracking-wider text-[#6B6B6B] font-semibold">
           CROSS-MEDIA COVERAGE SPLIT
@@ -176,7 +157,7 @@ export default async function HubDetailPage({ params }: PageProps) {
         />
       </div>
 
-      {/* AI Overview Banner */}
+      {/* 3. AI Overview Box (if exists) */}
       {showAiSummary && (
         <div className="p-5 bg-[#F5F5F3] border-l-4 border-l-[#C0392B] space-y-2 text-xs rounded-r-lg">
           <div className="text-[11px] font-mono tracking-wider uppercase text-[#6B6B6B] font-semibold">
@@ -202,19 +183,10 @@ export default async function HubDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Mobile Stacked Tabs Switcher */}
-      <div className="block lg:hidden">
-        <MobileHubTabs
-          mainstream={mainstreamItems}
-          grassroots={grassrootsItems}
-          discourse={discourseItems}
-        />
-      </div>
-
-      {/* Desktop & Tablet Multi-Column Layout */}
-      <div className="hidden lg:grid grid-cols-3 gap-8 divide-x divide-[#E5E5E0]">
+      {/* 4. Three Lane Columns Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-[#E5E5E0]">
         {/* Mainstream Column */}
-        <div className="space-y-6 pr-4">
+        <div className="space-y-6 pt-6 md:pt-0 md:pr-4">
           <div className="text-xs font-mono tracking-wider uppercase text-[#6B6B6B] font-semibold border-b border-[#E5E5E0] pb-2">
             MAINSTREAM ({mainstreamItems.length})
           </div>
@@ -233,7 +205,7 @@ export default async function HubDetailPage({ params }: PageProps) {
         </div>
 
         {/* Grassroots Column */}
-        <div className="space-y-6 pl-4 pr-4">
+        <div className="space-y-6 pt-6 md:pt-0 md:pl-4 md:pr-4">
           <div className="text-xs font-mono tracking-wider uppercase text-[#6B6B6B] font-semibold border-b border-[#E5E5E0] pb-2">
             GRASSROOTS ({grassrootsItems.length})
           </div>
@@ -252,7 +224,7 @@ export default async function HubDetailPage({ params }: PageProps) {
         </div>
 
         {/* Public Discourse Column */}
-        <div className="space-y-6 pl-4">
+        <div className="space-y-6 pt-6 md:pt-0 md:pl-4">
           <div className="text-xs font-mono tracking-wider uppercase text-[#6B6B6B] font-semibold border-b border-[#E5E5E0] pb-2">
             PUBLIC DISCOURSE ({discourseItems.length})
           </div>

@@ -143,7 +143,7 @@ function HeroCard({ hub }: { hub: TopicHub }) {
 
           <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-white/20">
             <span className="text-xs font-mono text-gray-300">
-              Updated {timeAgo(hub.last_updated_at)} · {items.length} total sources
+              Updated {timeAgo(hub.last_updated_at)}
             </span>
 
             <Link

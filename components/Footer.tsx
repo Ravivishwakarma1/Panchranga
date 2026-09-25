@@ -1,8 +1,33 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setSubscribed(true);
+      }
+    } catch (err) {
+      console.error('Subscription error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <footer className="w-full bg-[#1A1A1A] text-white px-8 pt-[40px] pb-[24px] font-sans mt-12">
       <div className="max-w-[1320px] mx-auto">
@@ -51,18 +76,51 @@ export default function Footer() {
               <li><Link href="/about" className="hover:text-white transition-colors">About Panchranga</Link></li>
               <li><Link href="/about#how-it-works" className="hover:text-white transition-colors">How it works</Link></li>
               <li><Link href="/about#contact" className="hover:text-white transition-colors">Contact</Link></li>
-              <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Open Source</a></li>
+              <li><a href="https://github.com/Ravivishwakarma1/Panchranga" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Open Source</a></li>
             </ul>
           </div>
 
-          {/* Column 5: Tools */}
-          <div>
-            <h4 className="text-white font-bold text-base mb-4">Tools</h4>
-            <ul className="space-y-2 text-[#9CA3AF] text-[13px]">
-              <li><span className="text-[#6B7280]">Browser Extension (coming soon)</span></li>
-              <li><span className="text-[#6B7280]">Daily Newsletter (coming soon)</span></li>
-              <li><span className="text-[#6B7280]">Public API (coming soon)</span></li>
-            </ul>
+          {/* Column 5: Newsletter & Tools */}
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-white font-bold text-base mb-2">Daily Newsletter</h4>
+              {subscribed ? (
+                <div className="text-[#10B981] font-semibold text-sm py-2">
+                  Subscribed! ✓
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="space-y-1.5">
+                  <div className="flex flex-col sm:flex-row gap-1.5">
+                    <input
+                      type="email"
+                      required
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="px-2.5 py-1.5 bg-[#2A2A2A] border border-[#444] rounded text-white text-xs placeholder:text-gray-400 focus:outline-none focus:border-[#C0392B] flex-1 min-w-0"
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-3 py-1.5 bg-[#C0392B] text-white rounded text-xs font-semibold hover:bg-[#a93226] transition-colors disabled:opacity-50 shrink-0"
+                    >
+                      {loading ? '...' : 'Subscribe'}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-[#9CA3AF]">
+                    Daily top 3 stories · 7 AM IST · Free
+                  </p>
+                </form>
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-[#333333]">
+              <h5 className="text-[#9CA3AF] text-xs font-medium mb-1.5 uppercase font-mono tracking-wider">Tools</h5>
+              <ul className="space-y-1 text-[#6B7280] text-xs">
+                <li>Browser Extension (coming soon)</li>
+                <li>Public API (coming soon)</li>
+              </ul>
+            </div>
           </div>
         </div>
 
