@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PanchrangaLoader from './PanchrangaLoader';
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState('');
@@ -132,12 +133,18 @@ export default function NewsletterSignup() {
                 fontWeight: 600,
                 cursor: status === 'loading' 
                   ? 'wait' : 'pointer',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                minWidth: '130px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              {status === 'loading' 
-                ? 'Subscribing...' 
-                : 'Subscribe →'}
+              {status === 'loading' ? (
+                <PanchrangaLoader loading={true} size="sm" showWordmark={false} />
+              ) : (
+                'Subscribe →'
+              )}
             </button>
           </div>
 

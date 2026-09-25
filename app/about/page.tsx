@@ -166,7 +166,7 @@ export default function AboutPage() {
           </p>
         </div>
         <a
-          href="https://github.com/Ravivishwakarma1/Panchranga"
+          href="https://github.com/panchranga-app/Panchranga"
           target="_blank"
           rel="noopener noreferrer"
           className="px-4 py-2 bg-[#1A1A1A] text-white rounded text-xs font-semibold hover:bg-black transition-colors shrink-0 flex items-center gap-1.5"
@@ -207,7 +207,7 @@ export default function AboutPage() {
                 Report bugs, request features, or propose new feeds on GitHub.
               </p>
               <a
-                href="https://github.com/Ravivishwakarma1/Panchranga/issues"
+                href="https://github.com/panchranga-app/Panchranga/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs font-medium text-[#C0392B] hover:underline block pt-1"

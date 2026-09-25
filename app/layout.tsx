@@ -3,6 +3,7 @@ import './globals.css';
 import { Suspense } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SiteLoader from '@/components/SiteLoader';
 
 export const metadata: Metadata = {
   title: 'Panchranga — Every Color of the Story',
@@ -23,6 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-[#FAFAF8] text-[#1A1A1A] antialiased flex flex-col font-sans">
+        {/* Site-wide Loading & Route Transition */}
+        <Suspense fallback={null}>
+          <SiteLoader />
+        </Suspense>
+
         {/* Top Navbar, Announcement Banner & Trending Bar */}
         <Suspense fallback={<div className="h-24 bg-[#FAFAF8] border-b border-[#E5E5E0]" />}>
           <Navbar />

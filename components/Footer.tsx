@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import PanchrangaLoader from './PanchrangaLoader';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -76,7 +77,7 @@ export default function Footer() {
               <li><Link href="/about" className="hover:text-white transition-colors">About Panchranga</Link></li>
               <li><Link href="/about#how-it-works" className="hover:text-white transition-colors">How it works</Link></li>
               <li><Link href="/about#contact" className="hover:text-white transition-colors">Contact</Link></li>
-              <li><a href="https://github.com/Ravivishwakarma1/Panchranga" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Open Source</a></li>
+              <li><a href="https://github.com/panchranga-app/Panchranga" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Open Source</a></li>
             </ul>
           </div>
 
@@ -102,9 +103,13 @@ export default function Footer() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-3 py-1.5 bg-[#C0392B] text-white rounded text-xs font-semibold hover:bg-[#a93226] transition-colors disabled:opacity-50 shrink-0"
+                      className="px-3 py-1.5 bg-[#C0392B] text-white rounded text-xs font-semibold hover:bg-[#a93226] transition-colors disabled:opacity-50 shrink-0 flex items-center justify-center min-w-[80px]"
                     >
-                      {loading ? '...' : 'Subscribe'}
+                      {loading ? (
+                        <PanchrangaLoader loading={true} size="sm" showWordmark={false} />
+                      ) : (
+                        'Subscribe'
+                      )}
                     </button>
                   </div>
                   <p className="text-[11px] text-[#9CA3AF]">
@@ -119,6 +124,7 @@ export default function Footer() {
               <ul className="space-y-1 text-[#6B7280] text-xs">
                 <li>Browser Extension (coming soon)</li>
                 <li>Public API (coming soon)</li>
+                <li><Link href="/loader-demo" className="hover:text-white transition-colors text-gray-400">Brand Loader Lab →</Link></li>
               </ul>
             </div>
           </div>

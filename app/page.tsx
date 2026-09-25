@@ -3,11 +3,12 @@ import path from 'path';
 import { Suspense } from 'react';
 import { TopicHub, RawItem } from '@/lib/types';
 import HomePageClient, { Hub, FactCheckItem } from '@/components/HomePageClient';
+import PanchrangaLoader from '@/components/PanchrangaLoader';
 import { getCategoryAndRegion } from '@/lib/topics';
 
 import { supabase } from '@/lib/supabase/client';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem[] }> {
   // 1. Try querying Supabase Postgres if configured
@@ -47,6 +48,7 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
             ...item,
             lane: src?.lane || item.lane || 'mainstream',
             source_name: src?.name || item.source_name || 'Unknown',
+            language: src?.language || item.language || 'en',
             sources: src,
             source: src,
           };
@@ -88,6 +90,7 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
         ...item,
         lane: src?.lane || item.lane || 'mainstream',
         source_name: src?.name || item.source_name || 'Unknown',
+        language: src?.language || item.language || 'en',
         sources: src,
         source: src,
       };
@@ -119,7 +122,7 @@ async function getClusteredData(): Promise<{ hubs: TopicHub[]; rawItems: RawItem
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams?: { q?: string; topic?: string };
+  searchParams?: { q?: string; topic?: string; lang?: string };
 }) {
   const { hubs, rawItems } = await getClusteredData();
 
@@ -132,15 +135,26 @@ export default async function HomePage({
         ...i,
         lane: src?.lane || i.lane || 'mainstream',
         source_name: src?.name || i.source_name || 'Unknown',
+        language: src?.language || i.language || 'en',
         sources: src,
         source: src,
       };
     });
 
     const firstOgItem = items.find((i) => i.og_image);
-    const mainstreamCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'mainstream').length;
-    const grassrootsCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'grassroots').length;
-    const discourseCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'discourse').length;
+    let mainstreamCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'mainstream').length;
+    let grassrootsCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'grassroots').length;
+    let discourseCount = items.filter((i) => (i.lane || i.sources?.lane || i.source?.lane) === 'discourse').length;
+
+    // Safety fallback: if no items matched lane classifications but items exist, assign to mainstream
+    if (mainstreamCount === 0 && grassrootsCount === 0 && discourseCount === 0 && items.length > 0) {
+      mainstreamCount = items.length;
+    }
+
+    const uniqueSourceNames = new Set(
+      items.map((i) => i.sources?.name || i.source?.name || i.source_name).filter(Boolean)
+    );
+    const sourceCount = Math.max(uniqueSourceNames.size, mainstreamCount + grassrootsCount + discourseCount, 1);
 
     const firstSource =
       firstOgItem?.sources?.name ||
@@ -156,6 +170,21 @@ export default async function HomePage({
       items[0]?.sources?.region ||
       items[0]?.source?.region;
 
+    const sourceLang =
+      firstOgItem?.sources?.language ||
+      firstOgItem?.source?.language ||
+      firstOgItem?.language ||
+      items[0]?.sources?.language ||
+      items[0]?.source?.language ||
+      items[0]?.language ||
+      'en';
+
+    const allLangs = Array.from(
+      new Set(
+        items.map((i) => i.sources?.language || i.source?.language || i.language || 'en').filter(Boolean)
+      )
+    );
+
     const { topic, region } = getCategoryAndRegion(hub.title ?? '', sourceRegion);
 
     return {
@@ -167,10 +196,13 @@ export default async function HomePage({
       mainstream_count: mainstreamCount,
       grassroots_count: grassrootsCount,
       discourse_count: discourseCount,
+      source_count: sourceCount,
       first_source_name: firstSource,
       topic,
       region,
-      sources: items[0]?.sources || items[0]?.source || { name: firstSource, region: sourceRegion },
+      language: sourceLang,
+      languages: allLangs,
+      sources: items[0]?.sources || items[0]?.source || { name: firstSource, region: sourceRegion, language: sourceLang },
     };
   });
 
@@ -232,8 +264,8 @@ export default async function HomePage({
   return (
     <Suspense
       fallback={
-        <div className="py-20 text-center text-xs text-[#6B6B6B]">
-          Loading story hubs...
+        <div className="min-h-[60vh] w-full flex flex-col items-center justify-center py-24">
+          <PanchrangaLoader loading={true} size="md" />
         </div>
       }
     >
@@ -243,6 +275,7 @@ export default async function HomePage({
         factCheckItems={factCheckItems}
         initialSearchQuery={searchParams?.q || ''}
         initialTopic={searchParams?.topic || ''}
+        initialLanguage={searchParams?.lang || ''}
       />
     </Suspense>
   );

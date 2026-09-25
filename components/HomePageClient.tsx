@@ -7,6 +7,11 @@ import SafeImage from './SafeImage';
 import CoverageBar from '@/components/CoverageBar';
 import NewsletterSignup from '@/components/NewsletterSignup';
 import { timeAgo } from '@/lib/utils';
+import {
+  TOPIC_SECTIONS,
+  TOPIC_KEYWORDS,
+  getCategoryAndRegion,
+} from '@/lib/topics';
 
 export interface Hub {
   id: string;
@@ -17,10 +22,13 @@ export interface Hub {
   mainstream_count: number;
   grassroots_count: number;
   discourse_count: number;
+  source_count?: number;
   first_source_name?: string;
-  sources?: { name?: string; lane?: string; region?: string };
+  sources?: { name?: string; lane?: string; region?: string; language?: string };
   region?: string;
   topic?: string;
+  language?: string;
+  languages?: string[];
 }
 
 export interface FactCheckItem {
@@ -30,12 +38,78 @@ export interface FactCheckItem {
   url: string;
   published_at: string;
 }
-import {
-  TOPIC_SECTIONS,
-  TOPIC_KEYWORDS,
-  getCategoryAndRegion,
-  getRegionFromHub,
-} from '@/lib/topics';
+
+export const SUPPORTED_LANGUAGES = [
+  { code: 'all', label: 'All Languages', shortLabel: 'All' },
+  { code: 'en', label: 'English', shortLabel: 'English' },
+  { code: 'hi', label: 'Hindi', shortLabel: 'हिंदी' },
+  { code: 'mr', label: 'Marathi', shortLabel: 'मराठी' },
+  { code: 'ta', label: 'Tamil', shortLabel: 'தமிழ்' },
+  { code: 'te', label: 'Telugu', shortLabel: 'తెలుగు' },
+  { code: 'kn', label: 'Kannada', shortLabel: 'ಕನ್ನಡ' },
+  { code: 'ml', label: 'Malayalam', shortLabel: 'മലയാളം' },
+  { code: 'gu', label: 'Gujarati', shortLabel: 'ગુજરાતી' },
+  { code: 'bn', label: 'Bengali', shortLabel: 'বাংলা' },
+] as const;
+
+export const LANGUAGE_LABEL_MAP: Record<string, string> = {
+  en: 'EN',
+  hi: 'HI',
+  mr: 'MR',
+  ta: 'TA',
+  te: 'TE',
+  kn: 'KN',
+  ml: 'ML',
+  gu: 'GU',
+  bn: 'BN',
+};
+
+export const LANGUAGE_DISPLAY_NAMES: Record<string, string> = {
+  en: 'English',
+  hi: 'Hindi',
+  mr: 'Marathi',
+  ta: 'Tamil',
+  te: 'Telugu',
+  kn: 'Kannada',
+  ml: 'Malayalam',
+  gu: 'Gujarati',
+  bn: 'Bengali',
+};
+
+export function getSourceCount(hub: Hub): number {
+  if (hub.source_count && hub.source_count > 0) {
+    return hub.source_count;
+  }
+  const total = (hub.mainstream_count || 0) + (hub.grassroots_count || 0) + (hub.discourse_count || 0);
+  return Math.max(total, 1);
+}
+
+function LanguageBadge({ lang, inverted = false }: { lang?: string; inverted?: boolean }) {
+  if (!lang || lang === 'all') return null;
+  const code = lang.toLowerCase();
+  const label = LANGUAGE_LABEL_MAP[code] || code.toUpperCase();
+  const title = LANGUAGE_DISPLAY_NAMES[code] || label;
+
+  if (inverted) {
+    return (
+      <span
+        title={title}
+        className="px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-white/20 text-white backdrop-blur-xs border border-white/30 tracking-wider inline-block"
+      >
+        {label}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      title={title}
+      className="px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-[#F0EFEB] text-[#4A4A4A] border border-[#DDDCD7] tracking-wider inline-block"
+    >
+      {label}
+    </span>
+  );
+}
 
 export default function HomePageClient({
   hubs,
@@ -43,12 +117,14 @@ export default function HomePageClient({
   factCheckItems,
   initialSearchQuery = '',
   initialTopic = '',
+  initialLanguage = '',
 }: {
   hubs: Hub[];
   heroHub: Hub | null;
   factCheckItems: FactCheckItem[];
   initialSearchQuery?: string;
   initialTopic?: string;
+  initialLanguage?: string;
 }) {
   const searchParams = useSearchParams();
   const [centerVisibleCount, setCenterVisibleCount] = useState(12);
@@ -56,8 +132,13 @@ export default function HomePageClient({
 
   const qParam = searchParams?.get('q') ?? initialSearchQuery;
   const topicParam = searchParams?.get('topic') ?? initialTopic;
+  const langParam = searchParams?.get('lang') ?? initialLanguage;
+
   const activeQuery = qParam.trim();
-  const isFiltered = Boolean(activeQuery || (topicParam && topicParam !== 'All'));
+  const activeTopic = topicParam && topicParam !== 'All' ? topicParam : '';
+  const activeLang = (langParam || 'all').toLowerCase();
+
+  const isFiltered = Boolean(activeQuery || activeTopic || (activeLang && activeLang !== 'all'));
 
   const baseHubs = useMemo(() => {
     return heroHub ? [heroHub, ...hubs] : hubs;
@@ -114,8 +195,8 @@ export default function HomePageClient({
       });
     }
 
-    if (topicParam && topicParam !== 'All') {
-      const t = topicParam.toLowerCase();
+    if (activeTopic) {
+      const t = activeTopic.toLowerCase();
       result = result.filter((hub) => {
         const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
         const topic = (hub.topic || detected.topic || '').toLowerCase();
@@ -123,8 +204,17 @@ export default function HomePageClient({
       });
     }
 
+    if (activeLang && activeLang !== 'all') {
+      result = result.filter((hub) => {
+        if (hub.language && hub.language.toLowerCase() === activeLang) return true;
+        if (hub.languages && hub.languages.some((l) => l.toLowerCase() === activeLang)) return true;
+        if (hub.sources?.language && hub.sources.language.toLowerCase() === activeLang) return true;
+        return false;
+      });
+    }
+
     return result;
-  }, [baseHubs, activeQuery, topicParam]);
+  }, [baseHubs, activeQuery, activeTopic, activeLang]);
 
   const displayHeroHub = isFiltered ? (filteredHubs[0] ?? null) : heroHub;
   const displayListHubs = isFiltered
@@ -133,26 +223,86 @@ export default function HomePageClient({
 
   // Sorted hubs for sidebars
   const sidebarPool = isFiltered && filteredHubs.length > 0 ? filteredHubs : baseHubs;
+  
+  // Today's Briefing: Recent/breaking stories
   const todaysBriefingHubs = [...sidebarPool]
-    .sort((a, b) => {
-      const aTotal = a.mainstream_count + a.grassroots_count + a.discourse_count;
-      const bTotal = b.mainstream_count + b.grassroots_count + b.discourse_count;
-      return bTotal - aTotal;
-    })
+    .sort((a, b) => new Date(b.last_updated_at).getTime() - new Date(a.last_updated_at).getTime())
     .slice(0, 4);
 
+  // Most Covered: Highest number of distinct reporting sources
   const mostCoveredHubs = [...sidebarPool]
-    .sort((a, b) => {
-      const aTotal = a.mainstream_count + a.grassroots_count + a.discourse_count;
-      const bTotal = b.mainstream_count + b.grassroots_count + b.discourse_count;
-      return bTotal - aTotal;
-    })
+    .sort((a, b) => getSourceCount(b) - getSourceCount(a))
     .slice(0, 5);
+
+  const buildFilterUrl = (paramsToUpdate: { lang?: string; topic?: string; q?: string }) => {
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    
+    if ('lang' in paramsToUpdate) {
+      if (!paramsToUpdate.lang || paramsToUpdate.lang === 'all') {
+        params.delete('lang');
+      } else {
+        params.set('lang', paramsToUpdate.lang);
+      }
+    }
+    
+    if ('topic' in paramsToUpdate) {
+      if (!paramsToUpdate.topic || paramsToUpdate.topic === 'All') {
+        params.delete('topic');
+      } else {
+        params.set('topic', paramsToUpdate.topic);
+      }
+    }
+
+    if ('q' in paramsToUpdate) {
+      if (!paramsToUpdate.q) {
+        params.delete('q');
+      } else {
+        params.set('q', paramsToUpdate.q);
+      }
+    }
+
+    const str = params.toString();
+    return str ? `/?${str}` : '/';
+  };
 
   return (
     <div className="w-full pb-16 font-sans">
       {/* SECTION 4 — Main 3-Column Layout Grid */}
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-[28px]">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-[20px]">
+        {/* Language Filter Bar */}
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none border-b border-[#E5E5E0]">
+            <span className="text-xs font-mono uppercase tracking-wider text-[#6B6B6B] font-bold shrink-0 mr-1 flex items-center gap-1.5">
+              <span>🌐</span>
+              <span>Language:</span>
+            </span>
+            {SUPPORTED_LANGUAGES.map((lang) => {
+              const isSelected = activeLang === lang.code || (lang.code === 'all' && (!activeLang || activeLang === 'all'));
+              const targetUrl = buildFilterUrl({ lang: lang.code });
+
+              return (
+                <Link
+                  key={`lang-filter-${lang.code}`}
+                  href={targetUrl}
+                  scroll={false}
+                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                    isSelected
+                      ? 'bg-[#1A1A1A] text-white font-semibold shadow-xs'
+                      : 'bg-white text-[#4A4A4A] border border-[#E5E5E0] hover:border-gray-400 hover:text-black'
+                  }`}
+                >
+                  <span>{lang.shortLabel}</span>
+                  {lang.code !== 'all' && (
+                    <span className="ml-1 text-[10px] opacity-75">
+                      ({lang.code.toUpperCase()})
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Active Filter Banner */}
         {isFiltered && (
           <div className="bg-white border border-[#E5E5E0] rounded-lg p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
@@ -160,9 +310,21 @@ export default function HomePageClient({
               <span className="px-2 py-0.5 bg-[#C0392B] text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold">
                 Filter Active
               </span>
-              <span className="text-[15px] font-bold text-[#1A1A1A]">
-                &ldquo;{activeQuery || topicParam}&rdquo;
-              </span>
+              {activeQuery && (
+                <span className="text-[14px] font-bold text-[#1A1A1A]">
+                  &ldquo;{activeQuery}&rdquo;
+                </span>
+              )}
+              {activeTopic && (
+                <span className="text-[14px] font-bold text-[#1A1A1A]">
+                  Topic: &ldquo;{activeTopic}&rdquo;
+                </span>
+              )}
+              {activeLang && activeLang !== 'all' && (
+                <span className="text-[14px] font-bold text-[#1A1A1A]">
+                  Language: {LANGUAGE_DISPLAY_NAMES[activeLang] || activeLang.toUpperCase()}
+                </span>
+              )}
               <span className="text-xs text-[#9CA3AF]">
                 — {filteredHubs.length} {filteredHubs.length === 1 ? 'story hub' : 'story hubs'}
               </span>
@@ -171,7 +333,7 @@ export default function HomePageClient({
               href="/"
               className="text-xs text-[#6B6B6B] hover:text-[#C0392B] font-semibold transition-colors border border-[#E5E5E0] rounded px-3 py-1.5 hover:border-[#C0392B] flex items-center gap-1 shrink-0"
             >
-              <span>Clear filter</span>
+              <span>Clear all filters</span>
               <span>✕</span>
             </Link>
           </div>
@@ -184,10 +346,10 @@ export default function HomePageClient({
               <div className="py-16 text-center space-y-4 bg-white rounded-lg border border-[#E5E5E0] p-8">
                 <div className="text-3xl">🔍</div>
                 <h3 className="font-serif-title text-2xl text-[#1A1A1A] font-bold">
-                  No stories match &ldquo;{activeQuery || topicParam}&rdquo;
+                  No stories match the selected filters
                 </h3>
                 <p className="text-xs text-[#6B6B6B] max-w-md mx-auto leading-relaxed">
-                  No clustered story hubs matched your filter. Try searching for broader terms like &ldquo;Politics&rdquo;, &ldquo;Courts&rdquo;, or &ldquo;National&rdquo;.
+                  No story hubs matched your combination of search query, topic, or language. Try selecting a different language or clearing active filters.
                 </p>
                 <div className="pt-2">
                   <Link
@@ -232,7 +394,7 @@ export default function HomePageClient({
             </h2>
             <div className="divide-y divide-[#E5E5E0]">
               {todaysBriefingHubs.map((hub) => {
-                const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+                const totalSources = getSourceCount(hub);
                 const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
                 const region = hub.region || detected.region;
                 const imageUrl = hub.og_image
@@ -253,9 +415,10 @@ export default function HomePageClient({
                       </div>
 
                       <div className="flex-1 min-w-0 space-y-1">
-                        {/* Meta: {region} · {source_count} sources */}
-                        <div className="text-[11px] text-[#9CA3AF] font-sans">
-                          {region} · {totalSources} {totalSources === 1 ? 'source' : 'sources'}
+                        {/* Meta: {region} · {source_count} sources + Language Badge */}
+                        <div className="text-[11px] text-[#9CA3AF] font-sans flex items-center justify-between gap-1">
+                          <span className="truncate">{region} · {totalSources} {totalSources === 1 ? 'source' : 'sources'}</span>
+                          {hub.language && <LanguageBadge lang={hub.language} />}
                         </div>
 
                         {/* Headline */}
@@ -298,7 +461,7 @@ export default function HomePageClient({
 
               <div className="divide-y divide-[#E5E5E0]">
                 {mostCoveredHubs.map((hub) => {
-                  const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+                  const totalSources = getSourceCount(hub);
                   const imageUrl = hub.og_image
                     ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
                     : null;
@@ -317,9 +480,10 @@ export default function HomePageClient({
                         </div>
 
                         <div className="flex-1 min-w-0 space-y-1">
-                          {/* Badge */}
-                          <div className="text-[11px] text-[#9CA3AF] font-sans font-medium">
-                            {totalSources} {totalSources === 1 ? 'source' : 'sources'}
+                          {/* Badge & Source Count */}
+                          <div className="flex items-center justify-between text-[11px] text-[#9CA3AF] font-sans font-medium">
+                            <span>{totalSources} {totalSources === 1 ? 'source' : 'sources'}</span>
+                            {hub.language && <LanguageBadge lang={hub.language} />}
                           </div>
 
                           {/* Headline */}
@@ -444,7 +608,7 @@ export default function HomePageClient({
  * Center Hero Component (Height: 380px)
  */
 function HeroCard({ hub }: { hub: Hub }) {
-  const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+  const totalSources = getSourceCount(hub);
   const imageUrl = hub.og_image
     ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
     : null;
@@ -461,9 +625,12 @@ function HeroCard({ hub }: { hub: Hub }) {
 
       <div className="absolute inset-0 p-6 flex flex-col justify-end z-10">
         <div className="space-y-2 max-w-3xl">
-          <span className="px-2.5 py-1 bg-[#C0392B] text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold inline-block">
-            FEATURED STORY
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 bg-[#C0392B] text-white text-[10px] font-mono uppercase tracking-wider rounded font-bold inline-block">
+              FEATURED STORY
+            </span>
+            {hub.language && <LanguageBadge lang={hub.language} inverted />}
+          </div>
 
           <Link href={`/hub/${encodeURIComponent(hub.id)}`} className="block group">
             <h1 className="font-sans text-2xl sm:text-3xl font-bold text-white leading-tight group-hover:text-gray-200 transition-colors line-clamp-3">
@@ -487,7 +654,7 @@ function HeroCard({ hub }: { hub: Hub }) {
           </div>
 
           <div className="flex items-center justify-between text-xs text-gray-300 pt-1">
-            <span>Updated {timeAgo(hub.last_updated_at)}</span>
+            <span>{totalSources} {totalSources === 1 ? 'source' : 'sources'} · Updated {timeAgo(hub.last_updated_at)}</span>
             <Link
               href={`/hub/${encodeURIComponent(hub.id)}`}
               className="text-white font-semibold hover:underline"
@@ -505,7 +672,7 @@ function HeroCard({ hub }: { hub: Hub }) {
  * Ground News Center Story List Item Component
  */
 function StoryListItem({ hub }: { hub: Hub }) {
-  const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+  const totalSources = getSourceCount(hub);
   const detected = getCategoryAndRegion(hub.title, hub.sources?.region);
   const topic = hub.topic || detected.topic;
   const region = hub.region || detected.region;
@@ -518,9 +685,10 @@ function StoryListItem({ hub }: { hub: Hub }) {
     <div className="py-[16px] flex justify-between items-start gap-4 border-b border-[#E5E5E0]">
       {/* Left side (text) */}
       <div className="flex-1 min-w-0 space-y-2">
-        {/* Category label · Region · Sources */}
-        <div className="text-[11px] text-[#9CA3AF] font-sans">
-          {topic} · {region} · {totalSources} {totalSources === 1 ? 'source' : 'sources'}
+        {/* Category label · Region · Sources · Language */}
+        <div className="text-[11px] text-[#9CA3AF] font-sans flex items-center gap-1.5 flex-wrap">
+          <span>{topic} · {region} · {totalSources} {totalSources === 1 ? 'source' : 'sources'}</span>
+          {hub.language && <LanguageBadge lang={hub.language} />}
         </div>
 
         {/* Source Name above headline */}
@@ -596,22 +764,23 @@ function TopicSection({ topicName, hubs }: { topicName: string; hubs: Hub[] }) {
 
   const displayHubs = (topicHubs.length >= 3 ? topicHubs : hubs).slice(0, 3);
 
-  // Less Covered (Blindspot) hubs: hubs with coverage in only 1 lane (or fewest total sources)
-  const lessCoveredHubs = [...(topicHubs.length > 0 ? topicHubs : hubs)]
-    .filter((h) => {
-      const activeLanes = [
-        h.mainstream_count > 0,
-        h.grassroots_count > 0,
-        h.discourse_count > 0,
-      ].filter(Boolean).length;
-      return activeLanes === 1;
-    })
-    .slice(0, 2);
+  // Less Covered (Blindspot) hubs: sorted ascending by source count (fewest sources / lowest coverage first)
+  const candidateHubs = topicHubs.length > 0 ? topicHubs : hubs;
+  const sortedByLowestCoverage = [...candidateHubs].sort((a, b) => {
+    const aCount = getSourceCount(a);
+    const bCount = getSourceCount(b);
+    if (aCount !== bCount) return aCount - bCount;
+    const aLanes = [a.mainstream_count > 0, a.grassroots_count > 0, a.discourse_count > 0].filter(Boolean).length;
+    const bLanes = [b.mainstream_count > 0, b.grassroots_count > 0, b.discourse_count > 0].filter(Boolean).length;
+    if (aLanes !== bLanes) return aLanes - bLanes;
+    return new Date(b.last_updated_at).getTime() - new Date(a.last_updated_at).getTime();
+  });
 
-  // Fallback if lessCoveredHubs count < 2
-  const finalLessCovered = lessCoveredHubs.length >= 2
-    ? lessCoveredHubs
-    : (topicHubs.length > 0 ? topicHubs : hubs).slice(0, 2);
+  const displayIds = new Set(displayHubs.map((h) => h.id));
+  const distinctLessCovered = sortedByLowestCoverage.filter((h) => !displayIds.has(h.id));
+  const finalLessCovered = distinctLessCovered.length >= 2
+    ? distinctLessCovered.slice(0, 2)
+    : sortedByLowestCoverage.slice(0, 2);
 
   return (
     <section className="space-y-6">
@@ -658,13 +827,13 @@ function TopicSection({ topicName, hubs }: { topicName: string; hubs: Hub[] }) {
               Less Covered
             </h3>
             <p className="font-sans text-[12px] text-[#9CA3AF] mt-0.5">
-              Stories with limited coverage across all lanes
+              Stories with limited coverage across Indian media
             </p>
           </div>
 
           <div className="space-y-4 divide-y divide-[#333333]">
             {finalLessCovered.map((hub) => {
-              const totalSources = hub.mainstream_count + hub.grassroots_count + hub.discourse_count;
+              const totalSources = getSourceCount(hub);
               const imageUrl = hub.og_image
                 ? `/api/og-image?url=${encodeURIComponent(hub.og_image)}`
                 : null;
@@ -676,15 +845,16 @@ function TopicSection({ topicName, hubs }: { topicName: string; hubs: Hub[] }) {
                       <SafeImage
                         src={imageUrl}
                         alt={hub.title}
-                        className="w-full h-[120px] object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         fallbackText={hub.first_source_name || 'News'}
                       />
                     </div>
                     <h4 className="font-sans text-[14px] font-semibold text-white leading-snug line-clamp-2 group-hover:text-[#C0392B] transition-colors">
                       {hub.title}
                     </h4>
-                    <div className="font-sans text-[12px] text-[#9CA3AF]">
-                      {totalSources} {totalSources === 1 ? 'source' : 'sources'}
+                    <div className="font-sans text-[12px] text-[#9CA3AF] flex items-center justify-between">
+                      <span>{totalSources} {totalSources === 1 ? 'source' : 'sources'}</span>
+                      {hub.language && <LanguageBadge lang={hub.language} inverted />}
                     </div>
                   </Link>
                 </div>

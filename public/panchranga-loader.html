@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panchranga Loading Animation — Plain HTML/CSS</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #FAFAF8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      gap: 32px;
+      color: #1a1a2e;
+    }
+
+    /* =====================================================================
+       Panchranga Brand Loader: Pure CSS Spec Implementation
+       ===================================================================== */
+
+    .panchranga-loader {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    /* Five circular dots in horizontal row, evenly spaced (10px diameter) */
+    .panchranga-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 4px;
+    }
+
+    .panchranga-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transform-origin: center center;
+      will-change: transform, opacity;
+      transform: scale(1);
+      opacity: 1;
+      transition: transform 300ms ease-out, opacity 300ms ease-out;
+    }
+
+    /* Colors in order: #4A56E2, #00B8A9, #F5A623, #E84393, #FF6B6B */
+    .panchranga-dot:nth-child(1) { background-color: #4A56E2; }
+    .panchranga-dot:nth-child(2) { background-color: #00B8A9; }
+    .panchranga-dot:nth-child(3) { background-color: #F5A623; }
+    .panchranga-dot:nth-child(4) { background-color: #E84393; }
+    .panchranga-dot:nth-child(5) { background-color: #FF6B6B; }
+
+    /* Wave animation when loading */
+    .panchranga-loader.loading .panchranga-dot {
+      animation-name: panchranga-wave;
+      animation-duration: 1.2s;
+      animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+      animation-iteration-count: infinite;
+    }
+
+    /* Stagger delay: ~120ms between each dot */
+    .panchranga-loader.loading .panchranga-dot:nth-child(1) { animation-delay: 0ms; }
+    .panchranga-loader.loading .panchranga-dot:nth-child(2) { animation-delay: 120ms; }
+    .panchranga-loader.loading .panchranga-dot:nth-child(3) { animation-delay: 240ms; }
+    .panchranga-loader.loading .panchranga-dot:nth-child(4) { animation-delay: 360ms; }
+    .panchranga-loader.loading .panchranga-dot:nth-child(5) { animation-delay: 480ms; }
+
+    /* Scale wave: 1.0 -> 1.4 -> 1.0 */
+    @keyframes panchranga-wave {
+      0%, 100% {
+        transform: scale(1);
+      }
+      20% {
+        transform: scale(1.4);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    /* Wordmark: bold, dark navy (#1a1a2e), lowercase, sans-serif */
+    .panchranga-wordmark {
+      margin-top: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.015em;
+      color: #1a1a2e;
+      text-transform: lowercase;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Fade in once when loading completes (~400ms ease, no looping) */
+    .panchranga-loader.resolved .panchranga-dot {
+      animation: none;
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .panchranga-loader.resolved .panchranga-wordmark {
+      opacity: 1;
+      pointer-events: auto;
+      animation: panchranga-wordmark-fade 400ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+      animation-iteration-count: 1;
+    }
+
+    @keyframes panchranga-wordmark-fade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Prefers-reduced-motion: opacity pulse (0.4 to 1) instead of scaling */
+    @media (prefers-reduced-motion: reduce) {
+      .panchranga-dot {
+        transition: none !important;
+      }
+      .panchranga-loader.loading .panchranga-dot {
+        animation-name: panchranga-pulse !important;
+        transform: none !important;
+      }
+      .panchranga-loader.resolved .panchranga-wordmark {
+        animation-duration: 0.01ms !important;
+        opacity: 1 !important;
+      }
+    }
+
+    @keyframes panchranga-pulse {
+      0%, 100% { opacity: 0.4; }
+      20% { opacity: 1; }
+      40% { opacity: 0.4; }
+    }
+
+    /* Card styling for demo controls */
+    .card {
+      background: #ffffff;
+      border: 1px solid #E5E5E0;
+      border-radius: 16px;
+      padding: 32px 48px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 320px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 150ms ease;
+    }
+
+    button:hover {
+      background: #2e2e50;
+    }
+
+    .badge {
+      font-size: 11px;
+      color: #666;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div id="loader" class="panchranga-loader loading" role="status" aria-label="Loading panchranga...">
+      <div class="panchranga-dots">
+        <span class="panchranga-dot"></span>
+        <span class="panchranga-dot"></span>
+        <span class="panchranga-dot"></span>
+        <span class="panchranga-dot"></span>
+        <span class="panchranga-dot"></span>
+      </div>
+      <span class="panchranga-wordmark">panchranga</span>
+    </div>
+
+    <div class="controls">
+      <button id="toggleBtn" onclick="toggleLoading()">Simulate Finish Loading</button>
+      <button onclick="resetLoader()">Reset</button>
+    </div>
+    <div id="statusBadge" class="badge">State: loading (dot wave looping continuously)</div>
+  </div>
+
+  <script>
+    const loader = document.getElementById('loader');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const badge = document.getElementById('statusBadge');
+
+    function toggleLoading() {
+      if (loader.classList.contains('loading')) {
+        loader.classList.remove('loading');
+        loader.classList.add('resolved');
+        toggleBtn.innerText = 'Start Loading Wave';
+        badge.innerText = 'State: resolved (wordmark faded in once, wave settled)';
+      } else {
+        loader.classList.remove('resolved');
+        loader.classList.add('loading');
+        toggleBtn.innerText = 'Simulate Finish Loading';
+        badge.innerText = 'State: loading (dot wave looping continuously)';
+      }
+    }
+
+    function resetLoader() {
+      loader.classList.remove('resolved');
+      loader.classList.add('loading');
+      toggleBtn.innerText = 'Simulate Finish Loading';
+      badge.innerText = 'State: loading (dot wave looping continuously)';
+    }
+  </script>
+</body>
+</html>

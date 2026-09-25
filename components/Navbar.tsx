@@ -157,6 +157,8 @@ export default function Navbar({
         <div className="flex items-center">
           <form onSubmit={handleSearchSubmit} className="relative">
             <svg
+              width="16"
+              height="16"
               className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none"
               fill="none"
               stroke="currentColor"

@@ -5,6 +5,7 @@ if (typeof (globalThis as any).WebSocket === 'undefined') {
 
 import fs from 'fs';
 import path from 'path';
+import pLimit from 'p-limit';
 import { generateEmbedding } from '../lib/embeddings';
 import { clusterRawItems, SIMILARITY_THRESHOLD } from '../lib/clustering';
 import { RawItem, TopicHub } from '../lib/types';
@@ -50,13 +51,39 @@ async function runClustering() {
     return;
   }
 
-  // Generate vector embeddings for items
-  console.log('🧠 Computing 384-dimensional vector embeddings...');
+  // Load cached embeddings from local cache if available to avoid recomputing
+  const localEmbedMap = new Map<string, number[]>();
+  if (fs.existsSync(itemsPath)) {
+    try {
+      const localItems = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
+      for (const it of localItems) {
+        if (it.embedding && Array.isArray(it.embedding) && it.embedding.length > 0) {
+          localEmbedMap.set(it.url, it.embedding);
+        }
+      }
+    } catch {}
+  }
+
+  // Generate vector embeddings only for new items
+  console.log('🧠 Checking vector embeddings...');
+  let newlyEmbedded = 0;
+  let cachedEmbedded = 0;
+
   for (const item of rawItems) {
+    if (!item.embedding && localEmbedMap.has(item.url)) {
+      item.embedding = localEmbedMap.get(item.url);
+    }
+
+    if (item.embedding && Array.isArray(item.embedding) && item.embedding.length > 0) {
+      cachedEmbedded++;
+      continue;
+    }
+
     const textToEmbed = `${item.title}. ${item.raw_summary || ''}`;
     item.embedding = await generateEmbedding(textToEmbed);
+    newlyEmbedded++;
   }
-  console.log(`✅ Computed vector embeddings for ${rawItems.length} items.`);
+  console.log(`✅ Embeddings ready: ${newlyEmbedded} newly computed, ${cachedEmbedded} loaded from cache.`);
 
   // Execute Cosine Similarity Clustering starting from fresh set
   console.log(`🔄 Clustering items into Topic Hubs (Cosine Threshold = ${SIMILARITY_THRESHOLD})...`);
@@ -72,6 +99,36 @@ async function runClustering() {
     console.log(`        └─ ${h.item_count} items (${h.mainstream_count || 0} mainstream · ${h.grassroots_count || 0} grassroots · ${h.discourse_count || 0} discourse)`);
   });
 
+  // Keep map of existing AI summaries so re-clustering does not wipe them out
+  const existingSummaryMap = new Map<string, string>();
+  if (isConfigured) {
+    const supabase = createClient(supabaseUrl!, supabaseKey!);
+    const { data: existingHubs } = await supabase.from('topic_hubs').select('title, ai_summary').not('ai_summary', 'is', null);
+    if (existingHubs) {
+      for (const h of existingHubs) {
+        if (h.ai_summary) existingSummaryMap.set(h.title.toLowerCase().trim(), h.ai_summary);
+      }
+    }
+  }
+  if (fs.existsSync(hubsPath)) {
+    try {
+      const localHubs = JSON.parse(fs.readFileSync(hubsPath, 'utf-8'));
+      for (const h of localHubs) {
+        if (h.ai_summary && !existingSummaryMap.has(h.title.toLowerCase().trim())) {
+          existingSummaryMap.set(h.title.toLowerCase().trim(), h.ai_summary);
+        }
+      }
+    } catch {}
+  }
+
+  // Restore existing AI summaries for matching topic hubs
+  for (const hub of hubs) {
+    const key = hub.title.toLowerCase().trim();
+    if (!hub.ai_summary && existingSummaryMap.has(key)) {
+      hub.ai_summary = existingSummaryMap.get(key);
+    }
+  }
+
   // Save to Database and Local Cache
   if (isConfigured) {
     const supabase = createClient(supabaseUrl!, supabaseKey!);
@@ -83,7 +140,7 @@ async function runClustering() {
       const chunk = hubs.slice(i, i + chunkSize).map((hub) => ({
         id: hub.id,
         title: hub.title,
-        ai_summary: hub.ai_summary,
+        ai_summary: hub.ai_summary || null,
         first_seen_at: hub.first_seen_at,
         last_updated_at: hub.last_updated_at,
         item_count: hub.item_count,
@@ -92,12 +149,20 @@ async function runClustering() {
       if (error) console.error('⚠️ Error upserting topic hubs chunk:', error);
     }
 
-    // Update cluster_ids on raw_items
-    for (const item of clusteredItems) {
-      if (item.cluster_id) {
-        await supabase.from('raw_items').update({ cluster_id: item.cluster_id }).eq('url', item.url);
-      }
-    }
+    // Update cluster_ids and embeddings on raw_items with concurrency
+    console.log(`💾 Syncing cluster IDs and embeddings for ${clusteredItems.length} items to Supabase...`);
+    const updateLimit = pLimit(15);
+    const updatePromises = clusteredItems
+      .filter((item) => item.cluster_id)
+      .map((item) =>
+        updateLimit(async () => {
+          await supabase
+            .from('raw_items')
+            .update({ cluster_id: item.cluster_id, embedding: item.embedding || null })
+            .eq('url', item.url);
+        })
+      );
+    await Promise.all(updatePromises);
 
     // Clean up orphaned hubs in topic_hubs that have 0 raw_items
     const { data: allLinkedItems } = await supabase.from('raw_items').select('cluster_id').not('cluster_id', 'is', null).limit(10000);

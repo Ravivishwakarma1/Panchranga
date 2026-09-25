@@ -4,6 +4,7 @@ if (typeof (globalThis as any).WebSocket === 'undefined') {
 }
 
 import Parser from 'rss-parser';
+import pLimit from 'p-limit';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
@@ -35,7 +36,7 @@ const redditParser = new Parser({
 });
 
 const MAX_ITEMS_PER_SOURCE = 30;
-const CONCURRENCY_BATCH_SIZE = 6;
+const CONCURRENCY_LIMIT = 7;
 
 interface IngestedItem {
   id?: string;
@@ -103,29 +104,43 @@ async function fetchSingleSource(source: any): Promise<IngestedItem[]> {
     // Polite pause for Reddit anti-spam
     await sleep(2000);
 
-    const feed = await redditParser.parseURL(rssUrl);
-    if (!feed || !feed.items || feed.items.length === 0) {
-      return [];
+    const response = await fetch(rssUrl, {
+      headers: {
+        'User-Agent': REDDIT_USER_AGENT,
+        'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*;q=0.9',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (response.ok) {
+      const xmlText = await response.text();
+      const feed = await redditParser.parseString(sanitizeXml(xmlText));
+      if (!feed || !feed.items || feed.items.length === 0) {
+        return [];
+      }
+
+      return feed.items.slice(0, MAX_ITEMS_PER_SOURCE).map((p: any) => {
+        const cleanTitle = (p.title || 'Civic Post').trim();
+        const rawSummary = (p.contentSnippet || p.content || cleanTitle).replace(/<[^>]*>?/gm, '').trim().slice(0, 300);
+        const { topic } = getCategoryAndRegion(cleanTitle, source.region, source.lane, source.name);
+
+        return {
+          source_id: source.id,
+          source_name: source.name,
+          lane: source.lane as any,
+          title: cleanTitle,
+          url: (p.link || p.guid || '').trim(),
+          published_at: p.isoDate || p.pubDate || new Date().toISOString(),
+          raw_summary: rawSummary,
+          category: topic,
+          og_description: `Reddit community discussion · ${source.name}`,
+          fetched_at: new Date().toISOString(),
+        };
+      }).filter((i: any) => i.url.startsWith('http'));
+    } else {
+      console.error(`⚠️ Reddit fetch failed for ${source.name}: ${response.status} ${response.statusText}`);
+      throw new Error(`Reddit HTTP ${response.status}: ${response.statusText}`);
     }
-
-    return feed.items.slice(0, MAX_ITEMS_PER_SOURCE).map((p: any) => {
-      const cleanTitle = (p.title || 'Civic Post').trim();
-      const rawSummary = (p.contentSnippet || p.content || cleanTitle).replace(/<[^>]*>?/gm, '').trim().slice(0, 300);
-      const { topic } = getCategoryAndRegion(cleanTitle, source.region, source.lane, source.name);
-
-      return {
-        source_id: source.id,
-        source_name: source.name,
-        lane: source.lane as any,
-        title: cleanTitle,
-        url: (p.link || p.guid || '').trim(),
-        published_at: p.isoDate || p.pubDate || new Date().toISOString(),
-        raw_summary: rawSummary,
-        category: topic,
-        og_description: `Reddit community discussion · ${source.name}`,
-        fetched_at: new Date().toISOString(),
-      };
-    }).filter((i: any) => i.url.startsWith('http'));
   }
 
   // 2. RSS / Atom / Google News syndication feed
@@ -245,50 +260,47 @@ async function fetchRss() {
   const standardSources = activeSources.filter((s) => s.type !== 'reddit' && !s.feed_url.includes('reddit.com'));
   const redditSources = activeSources.filter((s) => s.type === 'reddit' || s.feed_url.includes('reddit.com'));
 
-  // 1. Process Standard RSS Feeds with Controlled Concurrency
-  for (let i = 0; i < standardSources.length; i += CONCURRENCY_BATCH_SIZE) {
-    const batch = standardSources.slice(i, i + CONCURRENCY_BATCH_SIZE);
-    const results = await Promise.allSettled(
-      batch.map(async (source) => {
-        try {
-          const items = await fetchSingleSource(source);
-          if (supabase && source.id && source.id.length > 10) {
-            await supabase
-              .from('sources')
-              .update({
-                last_status: 'healthy',
-                last_error: null,
-                last_attempted_at: new Date().toISOString(),
-              })
-              .eq('id', source.id);
-          }
-          return { source, items };
-        } catch (err: any) {
-          if (supabase && source.id && source.id.length > 10) {
-            await supabase
-              .from('sources')
-              .update({
-                last_status: 'error',
-                last_error: (err.message || 'Unknown fetch error').slice(0, 500),
-                last_attempted_at: new Date().toISOString(),
-              })
-              .eq('id', source.id);
-          }
-          throw { source, err };
-        }
-      })
-    );
+  // 1. Process Standard RSS Feeds with Bounded Concurrency (p-limit)
+  const limit = pLimit(CONCURRENCY_LIMIT);
+  console.log(`📡 Ingesting from ${standardSources.length} standard sources with bounded concurrency (${CONCURRENCY_LIMIT} workers)...`);
 
-    for (const res of results) {
-      if (res.status === 'fulfilled') {
-        const { source, items } = res.value;
-        allItems.push(...items);
+  const standardPromises = standardSources.map((source) =>
+    limit(async () => {
+      try {
+        const items = await fetchSingleSource(source);
+        if (supabase && source.id && source.id.length > 10) {
+          await supabase
+            .from('sources')
+            .update({
+              last_status: 'healthy',
+              last_error: null,
+              last_attempted_at: new Date().toISOString(),
+            })
+            .eq('id', source.id);
+        }
         console.log(`✓ [${source.lane.toUpperCase()}] ${source.name} (${source.language}): +${items.length} items`);
-      } else {
-        const { source, err } = (res as PromiseRejectedResult).reason;
-        console.log(`✗ [${source?.lane?.toUpperCase() || 'SRC'}] ${source?.name}: ${err?.message || err}`);
+        return items;
+      } catch (err: any) {
+        const errMsg = err?.message || 'Unknown fetch error';
+        console.log(`✗ [${source?.lane?.toUpperCase() || 'SRC'}] ${source?.name}: ${errMsg}`);
+        if (supabase && source.id && source.id.length > 10) {
+          await supabase
+            .from('sources')
+            .update({
+              last_status: 'error',
+              last_error: errMsg.slice(0, 500),
+              last_attempted_at: new Date().toISOString(),
+            })
+            .eq('id', source.id);
+        }
+        return [];
       }
-    }
+    })
+  );
+
+  const standardResults = await Promise.all(standardPromises);
+  for (const items of standardResults) {
+    allItems.push(...items);
   }
 
   // 2. Process Reddit Civic Feeds Sequentially with Polite Pacing
@@ -376,7 +388,7 @@ async function fetchRss() {
   fs.writeFileSync(outputPath, JSON.stringify(allItems, null, 2));
   console.log(`💾 Saved ${allItems.length} raw items to local cache: ${outputPath}`);
 
-  console.log('✨ High-capacity ingestion cycle completed.');
+  console.log('✨ Ingestion cycle completed successfully.');
 }
 
 fetchRss().catch((err) => {

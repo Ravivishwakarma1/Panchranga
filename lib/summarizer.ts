@@ -1,22 +1,19 @@
 import { TopicHub } from './types';
+import { extractArticleText } from './article-extractor';
 
 export const MANDATORY_DISCLAIMER =
   'This summary is AI-generated from public headlines and may not capture full context. Read the original sources.';
 
 const SENSITIVE_KEYWORDS = [
   'communal violence',
-  'riot',
-  'riots',
-  'clash',
-  'clashes',
-  'election result',
-  'election results',
-  'court order',
+  'communal riot',
+  'sectarian violence',
+  'mob lynching',
+  'mob violence',
+  'hate speech',
   'sub-judice',
   'ongoing trial',
-  'hate speech',
-  'mob violence',
-  'curfew',
+  'curfew imposed',
 ];
 
 export interface SummaryResult {
@@ -45,47 +42,89 @@ export function cleanHeadline(title: string): string {
   cleaned = cleaned.replace(/\s*\|\s*.*$/, '');
   cleaned = cleaned.replace(/^Mainstream media coverage highlights\s*/i, '');
   cleaned = cleaned.replace(/\s*as reported by.*$/i, '');
+  cleaned = cleaned.replace(/&amp;/g, '&');
+  cleaned = cleaned.replace(/&quot;/g, '"');
+  cleaned = cleaned.replace(/&#39;/g, "'");
+  cleaned = cleaned.replace(/&lt;/g, '<');
+  cleaned = cleaned.replace(/&gt;/g, '>');
   return cleaned;
 }
 
 /**
- * Generates a neutral, guardrailed 1-sentence summary describing what happened in plain neutral English (max 18 words).
+ * Clean article raw summary/description: strips HTML tags, entities, boilerplate
+ */
+export function cleanSummary(raw: string): string {
+  if (!raw) return '';
+  let cleaned = raw.replace(/<[^>]*>?/gm, ' ');
+  cleaned = cleaned.replace(/&amp;/g, '&');
+  cleaned = cleaned.replace(/&quot;/g, '"');
+  cleaned = cleaned.replace(/&#39;/g, "'");
+  cleaned = cleaned.replace(/&lt;/g, '<');
+  cleaned = cleaned.replace(/&gt;/g, '>');
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  // Strip "read more", "continue reading", etc.
+  cleaned = cleaned.replace(/(?:read more|continue reading|click here for more|full coverage)[\s\S]*$/i, '').trim();
+  return cleaned;
+}
+
+/**
+ * Generates a neutral, guardrailed 1-sentence summary describing what happened in plain neutral English (max 20 words).
  */
 export async function generateNeutralSummary(hub: TopicHub): Promise<SummaryResult> {
+  const items = hub.items || [];
+  const primaryTitle = cleanHeadline(hub.title || items[0]?.title || '');
+
+  // Extract best fallback from article description if available
+  const rawDesc = items.find((i) => i.raw_summary || i.og_description);
+  const bestSnippet = rawDesc ? cleanSummary(rawDesc.raw_summary || rawDesc.og_description || '') : '';
+  const firstSentence = bestSnippet ? (bestSnippet.split(/(?<=[.?!])\s+/)[0] || bestSnippet).slice(0, 140) : '';
+  const defaultFallback = firstSentence.length > 20 ? firstSentence : primaryTitle;
+
   if (checkSensitiveBypass(hub)) {
     return {
-      summary: null,
+      summary: primaryTitle,
       isFlagged: true,
       flagReason:
-        'AI Summary bypassed for high-stakes sensitive topic. Displaying verified source articles only.',
+        'AI Summary bypassed for high-stakes sensitive topic. Displaying verified headline only.',
     };
   }
 
-  const items = hub.items || [];
   if (items.length === 0) {
-    return { summary: null, isFlagged: false };
+    return { summary: defaultFallback, isFlagged: false };
   }
 
-  const headlines = items.map((i) => `- ${cleanHeadline(i.title)}`);
+  // Build concise context for the LLM
+  const headlines = items.slice(0, 5).map((i) => {
+    const title = cleanHeadline(i.title);
+    const snippet = i.raw_summary ? cleanSummary(i.raw_summary).slice(0, 100) : '';
+    return snippet ? `- ${title} (Context: ${snippet})` : `- ${title}`;
+  });
+
+  // Extract real article text from primary source webpage
+  let fullArticleText: string | null = null;
+  if (items[0]?.url) {
+    try {
+      fullArticleText = await extractArticleText(items[0].url, 3000);
+    } catch {}
+  }
+  const articleExcerpt = fullArticleText ? `\nKey Excerpt from Primary Report:\n${fullArticleText.slice(0, 1200)}\n` : '';
 
   const groqKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-  const prompt = `You are a neutral Indian news editor.
-Read these headlines about the same event and write ONE clear sentence (max 18 words) describing what happened.
+  const prompt = `You are a neutral news editor.
+Write a concise, fact-rich 1-2 sentence neutral briefing (max 35 words) capturing the key event, concrete facts, numbers, and locations.
 
 Rules:
 - Plain English only
-- No source names or labels  
-- No quotes
-- No "as reported by"
-- State the fact, not the coverage
-- If event is in India, mention state/city
+- No source names or media labels (no "according to", "as reported by", quotes)
+- State facts and outcomes directly
+- If event is in India, mention state/city if available
 
-Headlines:
+News reports:
 ${headlines.join('\n')}
-
-One sentence only:`;
+${articleExcerpt}
+Neutral briefing:`;
 
   // 1. Try Groq (Ultra-fast inference)
   if (groqKey) {
@@ -101,14 +140,14 @@ One sentence only:`;
           messages: [
             {
               role: 'system',
-              content: 'You are a neutral news editor. Write ONE clear sentence (max 18 words) describing what happened. Plain English only. No source names, no quotes.',
+              content: 'You are a neutral news editor. Write a concise, fact-rich 1-2 sentence neutral briefing (max 35 words) capturing the key event, concrete facts, numbers, and locations. Plain English only. No source names, no quotes.',
             },
             {
               role: 'user',
-              content: `Headlines:\n${headlines.join('\n')}\n\nOne sentence only:`,
+              content: prompt,
             },
           ],
-          max_tokens: 50,
+          max_tokens: 75,
           temperature: 0.2,
         }),
       });
@@ -123,6 +162,9 @@ One sentence only:`;
             .replace(/\s*as reported by.*$/i, '');
           return { summary: cleanText, isFlagged: false };
         }
+      } else {
+        const errJson = await response.json().catch(() => ({}));
+        console.warn('⚠️ Groq API responded with error:', errJson?.error?.message || response.statusText);
       }
     } catch (e) {
       console.warn('⚠️ Groq API summary call failed, falling back...', e);
@@ -161,9 +203,8 @@ One sentence only:`;
   }
 
   // Fallback: clean single sentence without quotes or "as reported by"
-  const primaryTitle = cleanHeadline(hub.title || items[0]?.title || '');
   return {
-    summary: primaryTitle,
+    summary: defaultFallback,
     isFlagged: false,
   };
 }
