@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase/client';
 import fs from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const q = (searchParams.get('q') || '').trim();

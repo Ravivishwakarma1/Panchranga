@@ -2,11 +2,20 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const dynamic = 'force-dynamic';
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
+function getResend() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  return new Resend(key);
+}
 
 // Security: require a secret key so only GitHub Actions can trigger this
 function validateRequest(req: Request) {
@@ -21,6 +30,22 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: 'Unauthorized' }, 
       { status: 401 }
+    );
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return NextResponse.json(
+      { error: 'Database credentials not configured' },
+      { status: 500 }
+    );
+  }
+
+  const resend = getResend();
+  if (!resend) {
+    return NextResponse.json(
+      { error: 'Resend API key not configured' },
+      { status: 500 }
     );
   }
 
